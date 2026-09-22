@@ -1,0 +1,3057 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6E2E58">
+<meta name="description" content="Recipes costed from your own supplier prices.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Kitchen Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#EFEFEC; --card:#FCFCFA; --sunk:#E7E7E2;
+  --ink:#1C1B1E; --ink-2:#4A4750; --muted:#6E6B72; --faint:#918D97;
+  --line:#DBDAD5; --line-2:#C7C5BF;
+  --accent:#6E2E58; --accent-ink:#FFFFFF; --accent-soft:#F3E9F0; --accent-line:#D9BFD0;
+  --brass:#9A7433;
+  --good:#2F6A4B; --good-soft:#E6F0E9;
+  --warn:#8A6011; --warn-soft:#F6EEDD;
+  --bad:#A3311F; --bad-soft:#F7E7E3;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Karla","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --r:6px; --rail:224px;
+  --shadow:0 1px 2px rgba(28,27,30,.05), 0 8px 24px -16px rgba(28,27,30,.28);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#171619; --card:#201F24; --sunk:#131215;
+    --ink:#EDEAEF; --ink-2:#C4BFC9; --muted:#9A95A1; --faint:#7B7682;
+    --line:#332F39; --line-2:#443F4B;
+    --accent:#C98BB4; --accent-ink:#241426; --accent-soft:#2B2131; --accent-line:#4A3A4A;
+    --brass:#C9A45E;
+    --good:#7FC49C; --good-soft:#1E2B24;
+    --warn:#D8AC5A; --warn-soft:#2C2519;
+    --bad:#E58E7C; --bad-soft:#2E1D1A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#171619; --card:#201F24; --sunk:#131215;
+  --ink:#EDEAEF; --ink-2:#C4BFC9; --muted:#9A95A1; --faint:#7B7682;
+  --line:#332F39; --line-2:#443F4B;
+  --accent:#C98BB4; --accent-ink:#241426; --accent-soft:#2B2131; --accent-line:#4A3A4A;
+  --brass:#C9A45E;
+  --good:#7FC49C; --good-soft:#1E2B24;
+  --warn:#D8AC5A; --warn-soft:#2C2519;
+  --bad:#E58E7C; --bad-soft:#2E1D1A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.01em}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* ---------- shell ---------- */
+.shell{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);min-height:100vh}
+.rail{border-right:1px solid var(--line);padding:20px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:22px;background:var(--card)}
+.mark{display:flex;gap:10px;align-items:baseline;padding:0 8px}
+.mark b{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.02em}
+.mark span{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.08em;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);color:var(--ink-2);text-decoration:none;font-weight:500;font-size:14px}
+.nav a:hover{background:var(--sunk);color:var(--ink)}
+.nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav a svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nav .count{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.railfoot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:0 8px}
+.storepill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);font-family:var(--mono)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none}
+.dot.local{background:var(--warn)}
+main{min-width:0;padding:26px 30px 90px;max-width:1120px}
+.topbar{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.topbar h1{font-size:27px}
+.topbar .sub{color:var(--muted);font-size:13.5px;margin-top:3px}
+.topbar .acts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--faint)}
+
+/* ---------- controls ---------- */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--line-2);background:var(--card);border-radius:var(--r);cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.btn:hover{border-color:var(--ink-2);color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.ghost:hover{background:var(--sunk);color:var(--ink)}
+.btn.danger{color:var(--bad);border-color:var(--line-2)}
+.btn.danger:hover{border-color:var(--bad);background:var(--bad-soft)}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+input[type=text],input[type=number],input[type=search],input[type=date],select,textarea{width:100%;padding:7px 10px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--card)}
+input[type=number]{font-family:var(--mono)}
+textarea{min-height:88px;resize:vertical;line-height:1.55}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.01em}
+label.f>input,label.f>select,label.f>textarea{font-weight:400;color:var(--ink);letter-spacing:0}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.hint{font-size:12px;color:var(--faint);line-height:1.45}
+
+/* ---------- sheet (the ruled table) ---------- */
+.sheet{width:100%;border-collapse:collapse;font-size:14px}
+.sheet th{text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:500;padding:0 10px 7px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.sheet td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.sheet tbody tr:hover td{background:var(--card)}
+.sheet .num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sheet .thin{color:var(--muted);font-size:13px}
+.wrap{overflow-x:auto}
+.name{font-weight:600}
+.sub2{color:var(--muted);font-size:12.5px}
+
+/* ---------- pills & chips ---------- */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600;font-family:var(--mono);letter-spacing:.02em;border:1px solid transparent}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.flat{background:var(--sunk);color:var(--muted)}
+.pill.acc{background:var(--accent-soft);color:var(--accent)}
+.tag{display:inline-block;padding:1px 7px;border:1px solid var(--line-2);border-radius:999px;font-size:11.5px;color:var(--muted)}
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+
+/* ---------- panels ---------- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.panel>h3{font-size:16px;margin-bottom:10px}
+.costcard{background:var(--card);border:1px solid var(--accent-line);border-top:3px solid var(--accent);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+.costcard .big{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dotted var(--line-2);font-size:13.5px}
+.kv:last-child{border-bottom:0}
+.kv b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:500}
+.empty{border:1px dashed var(--line-2);border-radius:var(--r);padding:26px;text-align:center;color:var(--muted)}
+.empty h3{font-size:17px;color:var(--ink);margin-bottom:5px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:18px}
+.sec{display:flex;align-items:center;gap:10px;margin:4px 0 10px}
+.sec h2{font-size:18px}
+.sec .line{flex:1;height:1px;background:var(--line)}
+.banner{display:flex;gap:11px;align-items:flex-start;padding:11px 14px;border-radius:var(--r);background:var(--warn-soft);color:var(--warn);font-size:13.5px;border:1px solid transparent;margin-bottom:18px}
+.banner.acc{background:var(--accent-soft);color:var(--accent)}
+.banner .btn{background:transparent}
+
+/* ---------- cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px}
+.rcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;width:100%;font-family:var(--body)}
+.rcard:hover{border-color:var(--line-2);box-shadow:var(--shadow)}
+.rcard h3{font-size:17px;line-height:1.25}
+.rcard .foot{margin-top:auto;display:flex;align-items:baseline;gap:8px;padding-top:6px;border-top:1px dotted var(--line-2)}
+.rcard .cost{font-family:var(--mono);font-weight:600;font-size:15px;margin-left:auto;font-variant-numeric:tabular-nums}
+
+/* ---------- modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(20,18,22,.5);display:flex;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:50}
+.modal{background:var(--paper);border:1px solid var(--line-2);border-radius:8px;width:100%;max-width:620px;box-shadow:0 24px 60px -20px rgba(0,0,0,.5)}
+.modal.wide{max-width:860px}
+.modal header{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line)}
+.modal header h2{font-size:19px}
+.modal .mbody{padding:18px;display:flex;flex-direction:column;gap:14px}
+.modal footer{display:flex;gap:8px;justify-content:flex-end;padding:13px 18px;border-top:1px solid var(--line);background:var(--card);border-radius:0 0 8px 8px}
+.x{margin-left:auto}
+
+/* ---------- misc ---------- */
+.lines{display:flex;flex-direction:column;gap:7px}
+.lineRow{display:grid;grid-template-columns:minmax(0,1fr) 74px 92px 66px 30px;gap:7px;align-items:center}
+.lineRow .del{border:0;background:transparent;color:var(--faint);cursor:pointer;font-size:17px;line-height:1}
+.lineRow .del:hover{color:var(--bad)}
+.steps{counter-reset:s;display:flex;flex-direction:column;gap:12px;padding:0;margin:0;list-style:none}
+.steps li{counter-increment:s;display:grid;grid-template-columns:26px 1fr;gap:12px;line-height:1.6}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;color:var(--accent);border:1px solid var(--accent-line);border-radius:50%;width:24px;height:24px;display:grid;place-items:center;margin-top:1px}
+.feeditem{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.feeditem:last-child{border-bottom:0}
+.feeditem .fbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.feeditem h3{font-size:16.5px}
+.thinking{display:inline-flex;gap:6px;align-items:center;color:var(--muted);font-size:13px}
+.thinking i{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.1s ease-in-out infinite}
+.thinking i:nth-child(2){animation-delay:.15s}.thinking i:nth-child(3){animation-delay:.3s}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:13.5px;font-weight:500;z-index:80;box-shadow:var(--shadow)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.split>*,.stack{min-width:0}
+.linkbtn{border:0;background:none;padding:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer}
+.ico{display:inline-flex;align-items:center;flex:none}
+code{font-family:var(--mono);font-size:12.5px;background:var(--sunk);padding:1px 5px;border-radius:4px}
+details summary::-webkit-details-marker{color:var(--faint)}
+.keyrow{display:flex;gap:8px;align-items:flex-end}
+.keyrow label.f{flex:1}
+.right{text-align:right}
+.mobnav{display:none}
+#testout{font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;padding:16px;line-height:1.65}
+
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .rail{display:none}
+  main{padding:18px 15px 96px}
+  .split{grid-template-columns:1fr}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .lineRow{grid-template-columns:1fr 1fr 30px;padding-bottom:9px;border-bottom:1px dotted var(--line-2)}
+  .lineRow>input:first-child{grid-column:1 / -1}
+  .col-waste,.col-cat{display:none}
+  .lineRow .waste{display:none}
+  .mobnav{display:flex;position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:40}
+  .mobnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;color:var(--muted);text-decoration:none;font-size:10.5px;font-weight:600}
+  .mobnav a.on{color:var(--accent)}
+  .mobnav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .topbar h1{font-size:23px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(function(){
+"use strict";
+
+/* ======================= units & money ======================= */
+const UNITS = {
+  g:{f:1,fam:"mass",label:"g"},   kg:{f:1000,fam:"mass",label:"kg"},
+  oz:{f:28.349523125,fam:"mass",label:"oz"}, lb:{f:453.59237,fam:"mass",label:"lb"},
+  ml:{f:1,fam:"vol",label:"ml"},  l:{f:1000,fam:"vol",label:"l"},
+  tsp:{f:4.92892159375,fam:"vol",label:"tsp"}, tbsp:{f:14.78676478125,fam:"vol",label:"tbsp"},
+  cup:{f:236.5882365,fam:"vol",label:"cup"},   floz:{f:29.5735295625,fam:"vol",label:"fl oz"},
+  each:{f:1,fam:"count",label:"each"}, dozen:{f:12,fam:"count",label:"dozen"}
+};
+const UNIT_KEYS  = Object.keys(UNITS);
+const BASE_UNITS = ["g","ml","each"];
+const SHOW_PER   = {g:{unit:"kg",mult:1000}, ml:{unit:"l",mult:1000}, each:{unit:"each",mult:1}};
+
+function num(v){ const n = typeof v === "number" ? v : parseFloat(v); return isFinite(n) ? n : NaN; }
+
+/* Convert a quantity between units. Cross-family conversion needs the
+   density (g per ml) or piece weight (g per each) stored on the ingredient
+   — without it we refuse rather than guess. */
+function convert(qty, from, to, ing){
+  const F = UNITS[from], T = UNITS[to];
+  if(!F || !T) return {ok:false, reason:"unknown unit"};
+  const q = num(qty);
+  if(!isFinite(q)) return {ok:false, reason:"no quantity"};
+  if(F.fam === T.fam) return {ok:true, value: q*F.f/T.f};
+  const dens = ing && num(ing.densityGPerMl) > 0 ? num(ing.densityGPerMl) : null;
+  const each = ing && num(ing.gramsPerEach)  > 0 ? num(ing.gramsPerEach)  : null;
+  let grams;
+  if(F.fam === "mass") grams = q*F.f;
+  else if(F.fam === "vol"){ if(!dens) return {ok:false, reason:"needs a density (g per ml)"}; grams = q*F.f*dens; }
+  else { if(!each) return {ok:false, reason:"needs a weight per piece"}; grams = q*F.f*each; }
+  if(T.fam === "mass") return {ok:true, value: grams/T.f};
+  if(T.fam === "vol"){ if(!dens) return {ok:false, reason:"needs a density (g per ml)"}; return {ok:true, value: grams/dens/T.f}; }
+  if(!each) return {ok:false, reason:"needs a weight per piece"};
+  return {ok:true, value: grams/each/T.f};
+}
+
+/* Cost of one base unit (per g / per ml / per each) from a stored pack price. */
+function unitCostOf(price, ing){
+  const base = (ing && ing.baseUnit) || "g";
+  const conv = convert(price.packQty, price.packUnit, base, ing);
+  const paid = num(price.packPrice);
+  if(!conv.ok) return {ok:false, reason:conv.reason};
+  if(!isFinite(paid) || !(conv.value > 0)) return {ok:false, reason:"pack size or price missing"};
+  return {ok:true, value: paid/conv.value, base:base};
+}
+
+const STALE_DAYS = 90;
+function daysSince(iso){
+  if(!iso) return null;
+  const t = Date.parse(iso);
+  if(!isFinite(t)) return null;
+  return Math.floor((Date.now()-t)/86400000);
+}
+
+/* A quote as it stood on a given day: the current one if it was already in
+   force, otherwise the newest older quote kept in the price's history.
+   No date means "now". */
+function quoteAsOf(price, asOf){
+  if(!asOf) return price;
+  const all = [price].concat(price.history || []).filter(q => q && q.date && q.date <= asOf);
+  if(!all.length) return null;
+  all.sort((a,b) => (a.date < b.date) - (a.date > b.date));
+  return all[0];
+}
+
+/* Every stored price for an ingredient, normalised and ranked cheapest first.
+   Pass a date to see them as they stood then. */
+function pricesFor(ingId, asOf){
+  const ing = S.ix.ing[ingId];
+  const rows = [];
+  S.prices.forEach(p => {
+    /* A price whose supplier was deleted is never used for costing. */
+    if(p.ingredientId !== ingId || !S.ix.sup[p.supplierId]) return;
+    const q = quoteAsOf(p, asOf);
+    if(!q) return;
+    const uc  = unitCostOf(q, ing);
+    const age = daysSince(q.date);
+    rows.push({
+      price:p, quote:q, supplier:S.ix.sup[p.supplierId], ok:uc.ok, reason:uc.reason,
+      unitCost: uc.ok ? uc.value : null, age:age, stale: !asOf && age != null && age > STALE_DAYS
+    });
+  });
+  rows.sort((a,b) => (a.ok ? a.unitCost : Infinity) - (b.ok ? b.unitCost : Infinity));
+  return rows;
+}
+
+/* The price we actually cost with: pinned supplier if set, otherwise cheapest. */
+function bestPriceFor(ingId, asOf){
+  const rows = pricesFor(ingId, asOf).filter(r => r.ok);
+  if(!rows.length) return null;
+  const ing = S.ix.ing[ingId];
+  if(ing && ing.defaultSupplierId){
+    const pinned = rows.find(r => r.price.supplierId === ing.defaultSupplierId);
+    if(pinned) return Object.assign({pinned:true}, pinned);
+  }
+  return rows[0];
+}
+
+/* ======================= recipe costing ======================= */
+function costRecipe(recipe, scale, asOf){
+  const mult = num(scale) > 0 ? num(scale) : 1;
+  const set  = S.settings;
+  const lines = (recipe.lines || []).map(line => {
+    const ing = line.ingredientId ? S.ix.ing[line.ingredientId] : null;
+    const qty = num(line.qty) * mult;
+    const out = {line:line, ing:ing, qty:qty, cost:null, problem:null, source:null};
+    if(!ing){ out.problem = "not linked to an ingredient"; return out; }
+    const best = bestPriceFor(ing.id, asOf);
+    if(!best){ out.problem = "no supplier price yet"; return out; }
+    const conv = convert(qty, line.unit, ing.baseUnit, ing);
+    if(!conv.ok){ out.problem = conv.reason; return out; }
+    const waste = Math.min(95, Math.max(0, num(line.wastePct) || 0));
+    out.baseQty = conv.value / (1 - waste/100);
+    out.cost    = out.baseQty * best.unitCost;
+    out.source  = best;
+    out.stale   = best.stale;
+    return out;
+  });
+  const counted    = lines.filter(l => l.cost != null);
+  const ingredCost = counted.reduce((s,l) => s + l.cost, 0);
+  const b          = recipe.business || {};
+  const labourMin  = num(b.labourMin) || 0;
+  const labour     = labourMin/60 * (num(set.labourPerHour) || 0) * mult;
+  const overhead   = ingredCost * ((num(set.overheadPct) || 0)/100);
+  const total      = ingredCost + labour + overhead;
+  const servings   = Math.max(0.0001, (num(recipe.servings) || 1) * mult);
+  const targetPct  = num(b.targetFoodCostPct) || num(set.targetFoodCostPct) || 0;
+  const sell       = num(b.sellingPrice) || 0;
+  return {
+    lines:lines, ingredCost:ingredCost, labour:labour, overhead:overhead, total:total,
+    unpriced: lines.length - counted.length,
+    perServing: total/servings, servings:servings,
+    hasStale: counted.some(l => l.stale),
+    targetPct: targetPct,
+    /* Selling price is entered per serving, so every comparison is per serving. */
+    suggestedPrice: targetPct > 0 ? (total/servings)/(targetPct/100) : null,
+    sellingPrice: sell || null,
+    foodCostPct: sell > 0 ? ((total/servings)/sell)*100 : null,
+    margin: sell > 0 ? sell - total/servings : null
+  };
+}
+
+/* Who to buy from, for a set of {ingredientId, baseQty} needs. */
+function sourcingPlan(needs){
+  const perItem = needs.map(n => {
+    const rows = pricesFor(n.ingredientId).filter(r => r.ok);
+    /* Same choice the recipe costing makes: a pinned supplier wins, else cheapest. */
+    const best = bestPriceFor(n.ingredientId);
+    return Object.assign({}, n, {
+      ing:S.ix.ing[n.ingredientId], options:rows, best: best,
+      cost: best ? best.unitCost*n.baseQty : null
+    });
+  });
+  const splitTotal = perItem.reduce((s,i) => s + (i.cost || 0), 0);
+  const supIds = new Set();
+  perItem.forEach(i => i.options.forEach(o => supIds.add(o.price.supplierId)));
+  const baskets = [...supIds].map(sid => {
+    const sup = S.ix.sup[sid];
+    let total = 0; const covered = [], missing = [];
+    perItem.forEach(i => {
+      const opt = i.options.find(o => o.price.supplierId === sid);
+      if(opt){ total += opt.unitCost*i.baseQty; covered.push(i); } else missing.push(i);
+    });
+    const minOrder = num(sup && sup.minOrder) || 0;
+    return {
+      supplier:sup, total:total, covered:covered, missing:missing,
+      belowMin: minOrder > 0 && total < minOrder, minOrder:minOrder,
+      delivery: num(sup && sup.deliveryFee) || 0
+    };
+  }).sort((a,b) => (a.missing.length - b.missing.length) || (a.total - b.total));
+  return {perItem:perItem, splitTotal:splitTotal, baskets:baskets, unpriced: perItem.filter(i => !i.best)};
+}
+
+/* ======================= price history, pantry, orders ======================= */
+const TREND_DAYS = 30;
+function daysAgoISO(n){ return todayISO(new Date(Date.now() - n*86400000)); }
+
+/* What you pay for an ingredient now against a month ago, as a % change. */
+function ingredientTrend(ingId){
+  const now = bestPriceFor(ingId), then = bestPriceFor(ingId, daysAgoISO(TREND_DAYS));
+  if(!now || !then || !(then.unitCost > 0)) return null;
+  return (now.unitCost - then.unitCost) / then.unitCost * 100;
+}
+
+/* Recipes whose cost per serving moved by at least the alert threshold this
+   month. Only fully costed recipes are compared, so a line that has just been
+   priced for the first time never looks like a price rise. */
+function costAlerts(){
+  const limit = num(S.settings.alertPct) > 0 ? num(S.settings.alertPct) : 10;
+  const then = daysAgoISO(TREND_DAYS);
+  return S.recipes.map(r => {
+    const a = costRecipe(r, 1, then), b = costRecipe(r, 1);
+    if(!a.lines.length || a.unpriced || b.unpriced || !(a.perServing > 0)) return null;
+    const change = (b.perServing - a.perServing) / a.perServing * 100;
+    return Math.abs(change) >= limit ? {recipe:r, before:a.perServing, after:b.perServing, change:change} : null;
+  }).filter(Boolean).sort((x, y) => Math.abs(y.change) - Math.abs(x.change));
+}
+function trendPill(pct){
+  if(pct == null || Math.abs(pct) < 0.5) return null;
+  const up = pct > 0;
+  return el("span", {class:"pill " + (up ? "bad" : "good"), title:"Change over the last " + TREND_DAYS + " days"},
+    (up ? "↑ " : "↓ ") + Math.abs(pct).toFixed(Math.abs(pct) < 10 ? 1 : 0) + "%");
+}
+
+/* Stock lives on the ingredient, in its base unit (g, ml or each). */
+function stockOf(ingId){ const i = S.ix.ing[ingId]; return i && num(i.stock) > 0 ? num(i.stock) : 0; }
+function hasStock(){ return S.ingredients.some(i => num(i.stock) > 0); }
+
+/* What a recipe needs of each linked ingredient, in base units, waste included. */
+function recipeNeeds(r, scale){
+  const mult = num(scale) > 0 ? num(scale) : 1;
+  const need = {}; let unknown = 0;
+  (r.lines || []).forEach(l => {
+    const ing = l.ingredientId ? S.ix.ing[l.ingredientId] : null;
+    const conv = ing ? convert(num(l.qty) * mult, l.unit, ing.baseUnit, ing) : {ok:false};
+    if(!conv.ok){ unknown++; return; }
+    const waste = Math.min(95, Math.max(0, num(l.wastePct) || 0));
+    need[ing.id] = (need[ing.id] || 0) + conv.value / (1 - waste/100);
+  });
+  return {need:need, unknown:unknown};
+}
+/* How far a recipe is from cookable with what is in stock. */
+function recipeShortfall(r){
+  const n = recipeNeeds(r, 1);
+  let missing = 0, cost = 0;
+  Object.keys(n.need).forEach(id => {
+    const short = n.need[id] - stockOf(id);
+    if(short > 1e-6){ missing++; const b = bestPriceFor(id); if(b) cost += short * b.unitCost; }
+  });
+  return {missing:missing, cost:cost, unknown:n.unknown};
+}
+
+/* Round a need up to whole packs of the quote it is bought at. */
+function packsFor(item){
+  if(!item.best || !item.ing) return null;
+  const q = item.best.price;
+  const pack = convert(q.packQty, q.packUnit, item.ing.baseUnit, item.ing);
+  if(!pack.ok || !(pack.value > 0)) return null;
+  const packs = Math.max(1, Math.ceil(item.baseQty / pack.value - 1e-9));
+  return {
+    packs:packs, packPrice:num(q.packPrice), cost:packs * num(q.packPrice),
+    label: q.packLabel || (qtyText(num(q.packQty)) + " " + unitLabel(q.packUnit)),
+    left: packs * pack.value - item.baseQty, sku: q.sku || ""
+  };
+}
+
+/* The next day a supplier can deliver, allowing for their lead time. */
+const WEEKDAYS = ["sun","mon","tue","wed","thu","fri","sat"];
+function nextDelivery(sup){
+  const days = (sup.deliveryDays || []).map(d => WEEKDAYS.indexOf(String(d).trim().slice(0,3).toLowerCase())).filter(i => i >= 0);
+  const lead = Math.max(1, num(sup.leadTimeDays) || 1);
+  for(let k = lead; k < lead + 14; k++){
+    const d = new Date(Date.now() + k*86400000);
+    if(!days.length || days.indexOf(d.getDay()) >= 0) return d;
+  }
+  return null;
+}
+
+/* One order per supplier from a sourcing plan, in whole packs. */
+function buildOrders(plan){
+  const by = {};
+  plan.perItem.forEach(i => {
+    if(!i.best) return;
+    const p = packsFor(i);
+    if(!p) return;
+    const sid = i.best.price.supplierId;
+    (by[sid] = by[sid] || []).push(Object.assign({item:i}, p));
+  });
+  return Object.keys(by).map(sid => {
+    const sup = S.ix.sup[sid];
+    const lines = by[sid].sort((a, b) => ((a.item.ing && a.item.ing.name) || "").localeCompare((b.item.ing && b.item.ing.name) || ""));
+    const total = lines.reduce((s, l) => s + l.cost, 0);
+    const when = nextDelivery(sup);
+    const minOrder = num(sup.minOrder) || 0;
+    return {supplier:sup, lines:lines, total:total, when:when, minOrder:minOrder,
+      belowMin: minOrder > 0 && total < minOrder, text: orderText(sup, lines, when)};
+  }).sort((a, b) => b.total - a.total);
+}
+function orderText(sup, lines, when){
+  const whenText = when ? " for delivery on " + when.toLocaleDateString(undefined, {weekday:"long", day:"numeric", month:"long"}) : "";
+  const name = String(S.settings.orderName || "").trim();
+  return "Hello " + sup.name + ", please could I order the following" + whenText + ":\n\n" +
+    lines.map(l => "• " + l.packs + " × " + l.label + " — " + ((l.item.ing && l.item.ing.name) || "") +
+      (l.sku ? " (code " + l.sku + ")" : "")).join("\n") +
+    "\n\nThank you" + (name ? ",\n" + name : ".");
+}
+
+/* Save a price. When the amount or pack changes on a later day, the old quote
+   goes into the price's history, so trends and alerts have something to
+   compare against. A same-day change is a correction and just overwrites. */
+async function savePrice(existing, next){
+  const body = Object.assign({}, next);
+  delete body.id;
+  let history = ((existing && existing.history) || []).slice();
+  if(existing){
+    const changed = num(existing.packPrice) !== num(next.packPrice) ||
+      num(existing.packQty) !== num(next.packQty) || existing.packUnit !== next.packUnit;
+    if(changed && existing.date && existing.date !== todayISO()){
+      history.unshift({date:existing.date, packQty:existing.packQty, packUnit:existing.packUnit, packPrice:existing.packPrice});
+      history = history.slice(0, 24);
+      if(!body.date || body.date === existing.date) body.date = todayISO();
+    }
+  }
+  body.history = history;
+  return Store.save("prices", existing ? existing.id : null, body);
+}
+
+/* ======================= storage ======================= */
+const LS = "kitchenbook.v1.";
+function uid(){ return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2,8); }
+function todayISO(d){
+  const x = d || new Date();
+  return x.getFullYear() + "-" + String(x.getMonth()+1).padStart(2,"0") + "-" + String(x.getDate()).padStart(2,"0");
+}
+
+const Store = {
+  mode:"local", db:null, subs:{},
+  async init(){
+    /* Installed app: everything lives on this device. Moving a book between
+       devices is a deliberate act — Settings, download a backup, restore. */
+    this.db = null;
+    this.mode = "local";
+    return this.mode;
+  },
+  _mem:{}, _lsOk:null,
+  _lsAvailable(){
+    if(this._lsOk != null) return this._lsOk;
+    try { localStorage.setItem(LS+"probe", "1"); localStorage.removeItem(LS+"probe"); this._lsOk = true; }
+    catch(e){ this._lsOk = false; }
+    return this._lsOk;
+  },
+  _local(coll){
+    if(!this._lsAvailable()) return this._mem[coll] || {};
+    try { return JSON.parse(localStorage.getItem(LS+coll) || "{}"); } catch(e){ return {}; }
+  },
+  _localSet(coll, obj){
+    if(!this._lsAvailable()){ this._mem[coll] = obj; return; }
+    try { localStorage.setItem(LS+coll, JSON.stringify(obj)); } catch(e){ toast("Browser storage is full"); }
+  },
+  _fire(coll){ (this.subs[coll] || []).forEach(fn => fn()); },
+  watch(coll, cb){
+    if(this.mode === "cloud"){
+      return this.db.collection(coll).onSnapshot(
+        snap => cb(snap.docs.map(d => Object.assign({id:d.id}, d.data()))),
+        err  => { console.warn("db " + coll, err); if(err.code !== "revoked") toast("Storage trouble: " + err.code); }
+      );
+    }
+    const emit = () => cb(Object.entries(this._local(coll)).map(function(e){ return Object.assign({id:e[0]}, e[1]); }));
+    (this.subs[coll] = this.subs[coll] || []).push(emit);
+    emit();
+    return () => { this.subs[coll] = (this.subs[coll] || []).filter(f => f !== emit); };
+  },
+  async save(coll, id, data){
+    const docId = id || uid();
+    const body  = Object.assign({}, data);
+    delete body.id;
+    if(this.mode === "cloud") await this.db.doc(coll + "/" + docId).set(body);
+    else { const all = this._local(coll); all[docId] = body; this._localSet(coll, all); this._fire(coll); }
+    return docId;
+  },
+  async remove(coll, id){
+    if(this.mode === "cloud") await this.db.doc(coll + "/" + id).delete();
+    else { const all = this._local(coll); delete all[id]; this._localSet(coll, all); this._fire(coll); }
+  }
+};
+
+/* ======================= state ======================= */
+const DEFAULT_SETTINGS = {
+  currency:"USD", symbol:"$", targetFoodCostPct:30, labourPerHour:0, overheadPct:0,
+  businessMode:false, seeded:false, orderName:"", alertPct:10,
+  taste:{cuisines:"", diet:"", dislikes:"", notes:""}
+};
+
+const S = {
+  mode:"local", loaded:false, sampleReady:false, downloadsApi:null,
+  settings:Object.assign({}, DEFAULT_SETTINGS),
+  suppliers:[], ingredients:[], prices:[], recipes:[], feed:[],
+  ix:{sup:{}, ing:{}},
+  route:{name:"today", id:null},
+  modal:null,
+  ui:{search:"", tag:"", scale:1, shopping:{recipes:{}, extras:[]}}
+};
+
+function reindex(){
+  S.ix.sup = {}; S.suppliers.forEach(s => S.ix.sup[s.id] = s);
+  S.ix.ing = {}; S.ingredients.forEach(i => S.ix.ing[i.id] = i);
+}
+
+/* ======================= formatting ======================= */
+function money(n, dp){
+  if(n == null || !isFinite(n)) return "—";
+  const d = dp == null ? 2 : dp;
+  const neg = n < 0;
+  return (neg ? "-" : "") + (S.settings.symbol || "") +
+    Math.abs(n).toLocaleString("en-US", {minimumFractionDigits:d, maximumFractionDigits:d});
+}
+function qtyText(n){
+  if(n == null || !isFinite(n)) return "—";
+  const a = Math.abs(n);
+  const d = a >= 100 ? 0 : a >= 10 ? 1 : a >= 1 ? 2 : 3;
+  return String(parseFloat(n.toFixed(d)));
+}
+function unitLabel(u){ return UNITS[u] ? UNITS[u].label : u; }
+/* Per-gram numbers are unreadable — show per kg / per l / each instead. */
+function perUnitText(unitCost, baseUnit){
+  if(unitCost == null || !isFinite(unitCost)) return "—";
+  const show = SHOW_PER[baseUnit] || SHOW_PER.g;
+  const v = unitCost * show.mult;
+  return money(v, v < 1 ? 3 : 2) + " / " + show.unit;
+}
+function pluralise(n, one, many){ return n === 1 ? one : (many || one + "s"); }
+/* Only ever link to web pages. A bare domain ("metro.com") gets https:// added;
+   anything else — javascript:, data: — is shown as plain text instead. */
+function safeUrl(u){
+  const s = String(u || "").trim();
+  if(/^https?:\/\/\S+$/i.test(s)) return s;
+  if(/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(s)) return "https://" + s;
+  return null;
+}
+
+/* ======================= tiny DOM helper ======================= */
+function el(tag, props){
+  const n = document.createElement(tag);
+  if(props) for(const k in props){
+    const v = props[k];
+    if(v == null || v === false) continue;
+    if(k === "class") n.className = v;
+    else if(k === "html") n.innerHTML = v;
+    else if(k === "value") n.value = v;
+    else if(k === "checked" || k === "disabled" || k === "selected" || k === "open") n[k] = !!v;
+    else if(k.slice(0,2) === "on" && typeof v === "function") n.addEventListener(k.slice(2).toLowerCase(), v);
+    else n.setAttribute(k, v);
+  }
+  for(let i = 2; i < arguments.length; i++) append(n, arguments[i]);
+  return n;
+}
+function append(parent, kid){
+  if(kid == null || kid === false || kid === true) return;
+  if(Array.isArray(kid)){ kid.forEach(k => append(parent, k)); return; }
+  parent.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+}
+function frag(){ const f = document.createDocumentFragment(); for(let i = 0; i < arguments.length; i++) append(f, arguments[i]); return f; }
+
+const ICONS = {
+  today:'<circle cx="12" cy="13" r="4"/><path d="M12 3v3M4.5 8.5 6.6 10M19.5 8.5 17.4 10M3 20h18M6 16h12"/>',
+  recipes:'<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 1 6.5 21H19v-3"/><path d="M9 7.5h6M9 11h4"/>',
+  ingredients:'<path d="M4 20c8 1 15-5 15-14 0 0-9-1-12 4-1.7 2.8-2.4 6.6-3 10z"/><path d="M4 20c1.8-4.4 4.6-7.2 8-9"/>',
+  suppliers:'<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+  shopping:'<path d="M4 8h16l-1.4 11.2A2 2 0 0 1 16.6 21H7.4a2 2 0 0 1-2-1.8z"/><path d="M9 8 12 3l3 5M10 12v5M14 12v5"/>',
+  settings:'<path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h8M16 17h4"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="14" cy="17" r="2"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  spark:'<path d="M12 3.5 13.9 9l5.6 2-5.6 2-1.9 5.5L10.1 13 4.5 11l5.6-2z"/><path d="M18.5 3.5v3M17 5h3"/>',
+  trash:'<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 12.5h9l1-12.5"/>',
+  back:'<path d="M15 5l-7 7 7 7"/>',
+  edit:'<path d="M4 20h4.2L20 8.2 15.8 4 4 15.8z"/><path d="M14.5 5.5 18.5 9.5"/>',
+  star:'<path d="M12 4l2.5 5.3 5.5.7-4 3.9 1 5.6-5-2.8-5 2.8 1-5.6-4-3.9 5.5-.7z"/>',
+  link:'<path d="M14 4h6v6M20 4l-8.5 8.5"/><path d="M18 14.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4.5"/>',
+  save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+  down:'<path d="M12 4v11M8 11l4 4 4-4M4 19h16"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 6.5"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  copy:'<path d="M9 9h11v11H9zM4 15V4h11"/>',
+  stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>'
+};
+function ic(name){
+  return el("span", {class:"ico", html:'<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"});
+}
+
+let toastTimer = null;
+function toast(msg){
+  const old = document.querySelector(".toast");
+  if(old) old.remove();
+  const t = el("div", {class:"toast"}, msg);
+  document.body.append(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.remove(), 2600);
+}
+
+/* ======================= router ======================= */
+function parseHash(){
+  const raw = (location.hash || "#/today").replace(/^#\/?/, "");
+  const parts = raw.split("/").filter(Boolean);
+  const name = parts[0] || "today";
+  return {name:name, id: parts[1] ? decodeURIComponent(parts[1]) : null};
+}
+/* Navigate. The hash is kept in step where the browser allows it, but the
+   route never depends on it — a sandboxed frame may refuse the change. */
+function go(path){
+  const parts = String(path).split("/").filter(Boolean);
+  S.route = {name:parts[0] || "today", id: parts[1] ? decodeURIComponent(parts[1]) : null};
+  S.ui.scale = 1;
+  try { location.hash = "#/" + path; } catch(e){}
+  render();
+}
+
+const NAV = [
+  {key:"today",       label:"Today",       short:"Today",  icon:"today"},
+  {key:"recipes",     label:"Recipes",     short:"Recipes",icon:"recipes"},
+  {key:"ingredients", label:"Ingredients", short:"Items",  icon:"ingredients"},
+  {key:"suppliers",   label:"Suppliers",   short:"Shops",  icon:"suppliers"},
+  {key:"shopping",    label:"Shopping",    short:"List",   icon:"shopping"},
+  {key:"settings",    label:"Settings",    short:"Setup",  icon:"settings"}
+];
+function navCount(key){
+  if(key === "recipes") return S.recipes.length || "";
+  if(key === "ingredients") return S.ingredients.length || "";
+  if(key === "suppliers") return S.suppliers.length || "";
+  if(key === "today"){ const f = feedFor(todayISO()); return f && f.items ? f.items.length : ""; }
+  return "";
+}
+
+/* ======================= shell ======================= */
+function render(){
+  reindex();
+  const active = document.activeElement;
+  const keepId = active && active.id ? active.id : null;
+  const caret  = keepId && active.setSelectionRange ? active.selectionStart : null;
+
+  const root = document.getElementById("root");
+  const view = ({
+    today:viewToday, recipes:viewRecipes, ingredients:viewIngredients,
+    suppliers:viewSuppliers, shopping:viewShopping, settings:viewSettings
+  }[S.route.name] || viewToday)();
+
+  root.textContent = "";
+  root.append(
+    el("div", {class:"shell"},
+      el("nav", {class:"rail"},
+        el("div", {class:"mark"}, el("b", null, "Kitchen Book"), el("span", null, "offline")),
+        el("div", {class:"nav"}, NAV.map(n =>
+          el("a", {href:"#/" + n.key, class: S.route.name === n.key ? "on" : ""},
+            ic(n.icon), n.label, el("span", {class:"count"}, String(navCount(n.key)))))),
+        el("div", {class:"railfoot"},
+          el("div", {class:"storepill"},
+            el("i", {class:"dot"}),
+            "Saved on this device"))),
+      el("main", null, view)),
+    el("nav", {class:"mobnav"}, NAV.map(n =>
+      el("a", {href:"#/" + n.key, class: S.route.name === n.key ? "on" : ""}, ic(n.icon), n.short))),
+    el("div", {id:"modal-root"})
+  );
+
+  renderModal();
+  if(keepId){
+    const again = document.getElementById(keepId);
+    if(again && again.focus){
+      again.focus();
+      if(caret != null && again.setSelectionRange){ try{ again.setSelectionRange(caret, caret); }catch(e){} }
+    }
+  }
+}
+
+function topbar(title, sub, actions){
+  return el("div", {class:"topbar"},
+    el("div", null, el("h1", null, title), sub ? el("div", {class:"sub"}, sub) : null),
+    actions ? el("div", {class:"acts"}, actions) : null);
+}
+function section(title, right){
+  return el("div", {class:"sec"}, el("h2", null, title), el("span", {class:"line"}), right || null);
+}
+function empty(title, body, action){
+  return el("div", {class:"empty"}, el("h3", null, title), el("div", null, body), action ? el("div", {style:"margin-top:14px"}, action) : null);
+}
+function btn(label, opts){
+  const o = opts || {};
+  return el("button", {class:"btn " + (o.cls || ""), onclick:o.onClick, disabled:o.disabled, title:o.title, type:"button"},
+    o.icon ? ic(o.icon) : null, label);
+}
+function backLink(label, href){
+  return el("a", {href:href, class:"btn ghost sm", style:"text-decoration:none;margin-bottom:10px"}, ic("back"), label);
+}
+
+/* ======================= modal machinery ======================= */
+function openModal(spec){ S.modal = spec; renderModal(); }
+function closeModal(){ S.modal = null; renderModal(); }
+function renderModal(){
+  const host = document.getElementById("modal-root");
+  if(!host) return;
+  host.textContent = "";
+  if(!S.modal) return;
+  const m = S.modal;
+  const box = el("div", {class:"modal" + (m.wide ? " wide" : "")},
+    el("header", null,
+      el("h2", null, m.title),
+      el("button", {class:"btn ghost sm x", onclick:closeModal, type:"button", "aria-label":"Close"}, ic("x"))),
+    el("div", {class:"mbody"}, m.body()),
+    m.footer ? el("footer", null, m.footer()) : null);
+  const scrim = el("div", {class:"scrim", onclick:e => { if(e.target === scrim) closeModal(); }}, box);
+  host.append(scrim);
+  const first = box.querySelector("input,textarea,select");
+  if(first && !m.noAutofocus) setTimeout(() => first.focus(), 30);
+}
+document.addEventListener("keydown", e => { if(e.key === "Escape" && S.modal) closeModal(); });
+
+function confirmDelete(what, onYes){
+  openModal({
+    title:"Delete " + what + "?",
+    body:() => el("p", {style:"margin:0"}, "This cannot be undone."),
+    footer:() => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Delete", {cls:"danger", icon:"trash", onClick:async () => { closeModal(); await onYes(); }}))
+  });
+}
+
+/* form field helpers */
+function field(label, input, hint){
+  return el("label", {class:"f"}, label, input, hint ? el("span", {class:"hint"}, hint) : null);
+}
+function textInput(value, onInput, opts){
+  const o = opts || {};
+  return el("input", {type:o.type || "text", value:value == null ? "" : value, id:o.id, placeholder:o.placeholder,
+    step:o.step, min:o.min, inputmode:o.inputmode, oninput:e => onInput(e.target.value)});
+}
+function selectInput(value, options, onChange, opts){
+  const o = opts || {};
+  const s = el("select", {onchange:e => onChange(e.target.value), id:o.id});
+  options.forEach(op => s.append(el("option", {value:op.value, selected:String(op.value) === String(value)}, op.label)));
+  return s;
+}
+function unitOptions(){ return UNIT_KEYS.map(u => ({value:u, label:UNITS[u].label})); }
+
+/* ======================= shared bits ======================= */
+function feedFor(date){ return S.feed.find(f => f.id === date) || null; }
+function recentFeed(){ return S.feed.slice().sort((a,b) => a.id < b.id ? 1 : -1); }
+function ingUsage(ingId){ return S.recipes.filter(r => (r.lines || []).some(l => l.ingredientId === ingId)); }
+function supplierItems(supId){ return S.prices.filter(p => p.supplierId === supId); }
+function cheapestOnCount(supId){
+  let n = 0;
+  S.ingredients.forEach(i => { const b = bestPriceFor(i.id); if(b && b.price.supplierId === supId) n++; });
+  return n;
+}
+function niceDate(iso){
+  const t = Date.parse(iso + "T12:00:00");
+  if(!isFinite(t)) return iso;
+  const d = new Date(t);
+  const today = todayISO();
+  if(iso === today) return "Today";
+  const y = new Date(Date.now() - 86400000);
+  if(iso === todayISO(y)) return "Yesterday";
+  return d.toLocaleDateString(undefined, {weekday:"long", month:"short", day:"numeric"});
+}
+
+const UNIT_ALIASES = {
+  g:"g", gram:"g", grams:"g", gr:"g", kg:"kg", kilo:"kg", kilos:"kg", kilogram:"kg", kilograms:"kg",
+  ml:"ml", millilitre:"ml", milliliter:"ml", millilitres:"ml", milliliters:"ml",
+  l:"l", litre:"l", liter:"l", litres:"l", liters:"l",
+  tsp:"tsp", teaspoon:"tsp", teaspoons:"tsp", tsps:"tsp",
+  tbsp:"tbsp", tablespoon:"tbsp", tablespoons:"tbsp", tbsps:"tbsp",
+  cup:"cup", cups:"cup", oz:"oz", ounce:"oz", ounces:"oz",
+  lb:"lb", lbs:"lb", pound:"lb", pounds:"lb",
+  each:"each", piece:"each", pieces:"each", pc:"each", pcs:"each", clove:"each", cloves:"each",
+  dozen:"dozen"
+};
+function parseFraction(s){
+  const t = s.trim();
+  if(/^\d+\s+\d+\/\d+$/.test(t)){ const p = t.split(/\s+/); const f = p[1].split("/"); return parseFloat(p[0]) + parseFloat(f[0])/parseFloat(f[1]); }
+  if(/^\d+\/\d+$/.test(t)){ const f = t.split("/"); return parseFloat(f[0])/parseFloat(f[1]); }
+  const n = parseFloat(t.replace(",", "."));
+  return isFinite(n) ? n : NaN;
+}
+/* Best-effort split of "250 g plain flour" into qty / unit / name. */
+const FRACTIONS = {"½":"1/2","¼":"1/4","¾":"3/4","⅓":"1/3","⅔":"2/3","⅛":"1/8","⅜":"3/8","⅝":"5/8","⅞":"7/8"};
+function parseIngredientLine(text){
+  const raw = String(text || "").trim()
+    .replace(/(\d)?\s*([½¼¾⅓⅔⅛⅜⅝⅞])/g, (m, d, f) => (d ? d + " " : "") + FRACTIONS[f]);
+  const m = raw.match(/^([\d]+(?:\s+\d+\/\d+)?(?:[.,]\d+)?(?:\/\d+)?)\s*([a-zA-Z]+)?\.?\s*(.*)$/);
+  if(!m) return {qty:1, unit:"each", rawName:raw};
+  const qty  = parseFraction(m[1]);
+  const word = (m[2] || "").toLowerCase();
+  const unit = UNIT_ALIASES[word];
+  const name = (unit ? m[3] : ((m[2] ? m[2] + " " : "") + m[3])).trim();
+  return {qty: isFinite(qty) ? qty : 1, unit: unit || "each", rawName: name || raw};
+}
+/* Link written text ("2 large onions, sliced") to something you stock.
+   Whole words only, and the stocked name must be the head of the phrase:
+   "unsalted butter" finds Butter, but "egg noodles" does not find Eggs and
+   "salted caramel" does not find Salt. Anything doubtful stays unlinked,
+   where it is flagged, rather than being costed as the wrong thing. */
+function wordsOf(s){
+  return String(s || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean).map(w =>
+    w.length > 4 && /(ches|shes|sses|xes|oes)$/.test(w) ? w.slice(0, -2) :
+    w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w);
+}
+function endsWithWords(hay, needle){
+  if(!needle.length || needle.length > hay.length) return false;
+  const off = hay.length - needle.length;
+  return needle.every((w, k) => hay[off + k] === w);
+}
+function containsWords(hay, needle){
+  for(let s = 0; s + needle.length <= hay.length; s++){
+    if(needle.every((w, k) => hay[s + k] === w)) return true;
+  }
+  return false;
+}
+function matchIngredient(name){
+  const phrase = wordsOf(String(name || "").split(/[,(;]/)[0]);
+  if(!phrase.length) return null;
+  const key = phrase.join(" ");
+  const namesOf = i => [i.name].concat(i.aliases || []).filter(Boolean).map(wordsOf);
+  const exact = S.ingredients.find(i => namesOf(i).some(w => w.join(" ") === key));
+  if(exact) return exact;
+  let best = null, bestLen = 0;
+  S.ingredients.forEach(i => namesOf(i).forEach(w => {
+    if(endsWithWords(phrase, w) && w.length > bestLen){ best = i; bestLen = w.length; }
+  }));
+  if(best) return best;
+  const within = S.ingredients.filter(i => namesOf(i).some(w => containsWords(w, phrase)));
+  return within.length === 1 ? within[0] : null;
+}
+function linesFromStrings(list){
+  return (list || []).map(txt => {
+    const p = parseIngredientLine(txt);
+    const ing = matchIngredient(p.rawName);
+    return {ingredientId: ing ? ing.id : null, rawName: p.rawName, qty:p.qty, unit:p.unit, wastePct:0, note:""};
+  });
+}
+
+/* ======================= TODAY ======================= */
+function viewToday(){
+  const today = feedFor(todayISO());
+  const older = recentFeed().filter(f => f.id !== todayISO()).slice(0, 6);
+  const acts = frag(
+    btn("Write me a recipe", {icon:"spark", cls:"primary", onClick:openWriteRecipe, disabled:!S.sampleReady,
+      title: S.sampleReady ? "" : "Claude is not available in this view"}),
+    btn("More ideas now", {icon:"spark", onClick:openIdeaSearch, disabled:!S.sampleReady})
+  );
+
+  const head = topbar("Today", new Date().toLocaleDateString(undefined, {weekday:"long", day:"numeric", month:"long"}), acts);
+  const out = el("div", null, head);
+
+  if(!S.sampleReady && S.loaded)
+    out.append(el("div", {class:"banner"}, el("div", null,
+      el("b", null, "Claude features are off. "),
+      "Add your Anthropic API key under Settings to switch on recipe writing and ideas. Everything else works as normal.")));
+
+  const alerts = costAlerts();
+  if(alerts.length){
+    out.append(section("Cost changes this month",
+      el("span", {class:"eyebrow"}, (num(S.settings.alertPct) || 10) + "% or more")));
+    out.append(el("div", {class:"panel"}, alerts.map(a => el("div", {class:"kv"},
+      el("a", {href:"#/recipes/" + a.recipe.id}, a.recipe.name),
+      el("span", null, el("span", {class:"sub2"}, money(a.before) + " → "), el("b", {class:"mono"}, money(a.after)),
+        " ", trendPill(a.change))))));
+  }
+
+  if(today && today.items && today.items.length){
+    out.append(section(niceDate(today.id), el("span", {class:"eyebrow"}, (today.source || "found on the web"))));
+    out.append(el("div", {class:"panel"}, today.items.map((item, i) => feedItem(today, i, item))));
+  } else {
+    out.append(empty("Nothing filed for today",
+      "Ask for ideas built on what you already buy, or paste in a recipe you found somewhere.",
+      btn("Get ideas now", {cls:"primary", icon:"spark", onClick:openIdeaSearch, disabled:!S.sampleReady})));
+  }
+
+  if(older.length){
+    out.append(section("Earlier finds"));
+    out.append(el("div", {class:"panel"}, older.map(day =>
+      el("details", {style:"padding:6px 0;border-bottom:1px solid var(--line)"},
+        el("summary", {style:"cursor:pointer;padding:6px 0;font-weight:600"},
+          niceDate(day.id) + "  ",
+          el("span", {class:"eyebrow"}, (day.items || []).length + " " + pluralise((day.items || []).length, "idea"))),
+        (day.items || []).map((item, i) => feedItem(day, i, item))))));
+  }
+
+  const recent = S.recipes.slice().sort((a,b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 4);
+  if(recent.length){
+    out.append(section("Recently added", el("a", {href:"#/recipes", class:"btn ghost sm", style:"text-decoration:none"}, "All recipes")));
+    out.append(el("div", {class:"cards"}, recent.map(recipeCard)));
+  }
+  return out;
+}
+
+function feedItem(day, idx, item){
+  return el("article", {class:"feeditem"},
+    el("div", {class:"fbody"},
+      el("h3", null, item.title || "Untitled"),
+      el("div", {class:"sub2"},
+        item.site ? el("span", null, item.site) : null,
+        item.cuisine ? el("span", null, "  ·  " + item.cuisine) : null),
+      item.summary ? el("div", null, item.summary) : null,
+      item.ingredients && item.ingredients.length
+        ? el("div", {class:"tags"}, item.ingredients.slice(0, 8).map(t => el("span", {class:"tag"}, t)))
+        : null,
+      item.whyItFits ? el("div", {class:"hint"}, item.whyItFits) : null,
+      el("div", {class:"row", style:"margin-top:4px"},
+        btn("Save to recipes", {cls:"sm", icon:"save", onClick:() => saveFeedItem(item)}),
+        safeUrl(item.url) ? el("a", {class:"btn sm", href:safeUrl(item.url), target:"_blank", rel:"noopener noreferrer", style:"text-decoration:none"}, ic("link"), "Open source") : null,
+        btn("Dismiss", {cls:"ghost sm", onClick:() => dismissFeedItem(day, idx)}))));
+}
+
+async function saveFeedItem(item){
+  const id = await Store.save("recipes", null, {
+    name: item.title || "Untitled",
+    cuisine: item.cuisine || "",
+    tags: ["from the web"],
+    servings: num(item.servings) || 4,
+    yieldQty:null, yieldUnit:"",
+    lines: linesFromStrings(item.ingredients),
+    steps: item.steps && item.steps.length ? item.steps : (item.summary ? [item.summary] : []),
+    prepMin:num(item.prepMin) || 0, cookMin:num(item.cookMin) || 0,
+    source:"web", sourceUrl:item.url || "",
+    notes: item.url ? "Found at " + item.url : "",
+    business:{}, favorite:false, createdAt:new Date().toISOString()
+  });
+  toast("Saved. Link its ingredients to cost it.");
+  go("recipes/" + id);
+}
+async function dismissFeedItem(day, idx){
+  const items = (day.items || []).slice();
+  items.splice(idx, 1);
+  await Store.save("feed", day.id, Object.assign({}, day, {items:items}));
+}
+
+/* ======================= RECIPES ======================= */
+function recipeCard(r){
+  const c = costRecipe(r, 1);
+  return el("button", {class:"rcard", onclick:() => go("recipes/" + r.id)},
+    el("h3", null, r.favorite ? "★ " : "", r.name || "Untitled"),
+    el("div", {class:"tags"},
+      r.cuisine ? el("span", {class:"tag"}, r.cuisine) : null,
+      (r.tags || []).slice(0, 3).map(t => el("span", {class:"tag"}, t))),
+    el("div", {class:"foot"},
+      el("span", {class:"sub2"}, qtyText(r.servings || 1) + " " + pluralise(num(r.servings) || 1, "serving")),
+      el("span", {class:"cost"}, c.unpriced === c.lines.length && c.lines.length ? "—" : money(c.perServing)),
+      el("span", {class:"sub2"}, "/ serving")));
+}
+
+function viewRecipes(){
+  if(S.route.id) return viewRecipeDetail(S.route.id);
+  const q = S.ui.search.toLowerCase();
+  const list = S.recipes.filter(r => {
+    if(!q) return true;
+    return (r.name || "").toLowerCase().indexOf(q) >= 0
+      || (r.cuisine || "").toLowerCase().indexOf(q) >= 0
+      || (r.tags || []).join(" ").toLowerCase().indexOf(q) >= 0
+      || (r.lines || []).some(l => (l.rawName || "").toLowerCase().indexOf(q) >= 0);
+  }).sort((a,b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0) || (a.name || "").localeCompare(b.name || ""));
+
+  const out = el("div", null,
+    topbar("Recipes", S.recipes.length + " " + pluralise(S.recipes.length, "recipe") + " on the shelf", frag(
+      btn("Write me one", {icon:"spark", onClick:openWriteRecipe, disabled:!S.sampleReady}),
+      btn("Paste a recipe", {icon:"copy", onClick:openImportRecipe, disabled:!S.sampleReady}),
+      btn("New recipe", {cls:"primary", icon:"plus", onClick:() => openRecipeEditor(null)}))),
+    el("div", {style:"max-width:340px;margin-bottom:16px"},
+      el("input", {type:"search", id:"recipe-search", placeholder:"Search recipes and ingredients", value:S.ui.search,
+        oninput:e => { S.ui.search = e.target.value; render(); }})));
+
+  if(!list.length){
+    out.append(empty(S.recipes.length ? "Nothing matches that" : "No recipes yet",
+      S.recipes.length ? "Try a different word." : "Write one with Claude, paste one you already have, or start from scratch.",
+      btn("New recipe", {cls:"primary", icon:"plus", onClick:() => openRecipeEditor(null)})));
+    return out;
+  }
+  /* With stock recorded, recipes can be ranked by how little you need to buy. */
+  const byStock = S.ui.recipeSort === "stock" && hasStock();
+  if(hasStock()) out.append(el("div", {class:"row", style:"margin:-4px 0 14px"},
+    btn("A–Z", {cls:"sm " + (byStock ? "ghost" : "primary"), onClick:() => { S.ui.recipeSort = "az"; render(); }}),
+    btn("Fewest to buy", {cls:"sm " + (byStock ? "primary" : "ghost"), onClick:() => { S.ui.recipeSort = "stock"; render(); }})));
+  if(!byStock){ out.append(el("div", {class:"cards"}, list.map(r => recipeCard(r)))); return out; }
+  const scored = list.map(r => ({r:r, sf:recipeShortfall(r)}))
+    .sort((a, b) => ((a.sf.unknown > 0) - (b.sf.unknown > 0)) || (a.sf.missing - b.sf.missing) || (a.sf.cost - b.sf.cost));
+  out.append(el("div", {class:"cards"}, scored.map(x => {
+    const card = recipeCard(x.r);
+    card.querySelector(".tags").append(x.sf.missing === 0 && !x.sf.unknown
+      ? el("span", {class:"pill good"}, "all in stock")
+      : el("span", {class:"pill " + (x.sf.missing ? "warn" : "flat")}, x.sf.missing
+          ? "buy " + x.sf.missing + " " + pluralise(x.sf.missing, "item") + (x.sf.cost ? " · " + money(x.sf.cost) : "")
+          : "some lines not counted"));
+    return card;
+  })));
+  return out;
+}
+
+function viewRecipeDetail(id){
+  const r = S.recipes.find(x => x.id === id);
+  if(!r) return el("div", null, backLink("Recipes", "#/recipes"), empty("Recipe not found", "It may have been deleted."));
+  const scale = num(S.ui.scale) > 0 ? num(S.ui.scale) : 1;
+  const c = costRecipe(r, scale);
+  const biz = S.settings.businessMode;
+
+  const linesTable = el("table", {class:"sheet"},
+    el("thead", null, el("tr", null,
+      el("th", null, "Ingredient"), el("th", {class:"num"}, "Qty"),
+      el("th", {class:"col-waste"}, "Waste"), el("th", null, "Priced from"), el("th", {class:"num"}, "Cost"))),
+    el("tbody", null, c.lines.map(l =>
+      el("tr", null,
+        el("td", null,
+          el("div", {class:"name"}, (l.ing && l.ing.name) || l.line.rawName || "—"),
+          l.ing && l.line.rawName && l.line.rawName.trim().toLowerCase() !== l.ing.name.toLowerCase()
+            ? el("div", {class:"sub2"}, "written as “" + l.line.rawName.trim() + "” · ",
+                el("button", {class:"linkbtn", type:"button", onclick:() => openLinkLine(r, l.line)}, "change"))
+            : null,
+          l.line.note ? el("div", {class:"sub2"}, l.line.note) : null,
+          !l.ing ? el("button", {class:"btn ghost sm", style:"margin-top:4px", onclick:() => openLinkLine(r, l.line)}, "Link to an ingredient") : null),
+        el("td", {class:"num"}, qtyText(l.qty) + " " + unitLabel(l.line.unit)),
+        el("td", {class:"thin col-waste"}, num(l.line.wastePct) ? l.line.wastePct + "%" : "—"),
+        el("td", {class:"thin"},
+          l.problem ? el("span", {class:"pill warn"}, l.problem)
+                    : el("span", null, (l.source.supplier && l.source.supplier.name) || "—",
+                        l.source.pinned ? el("span", {class:"pill flat", style:"margin-left:6px"}, "pinned") : null,
+                        l.stale ? el("span", {class:"pill warn", style:"margin-left:6px"}, "old price") : null)),
+        el("td", {class:"num"}, l.cost == null ? "—" : money(l.cost))))));
+
+  const stepsBlock = (r.steps || []).length
+    ? el("ol", {class:"steps"}, r.steps.map(s => el("li", null, el("div", null, s))))
+    : el("div", {class:"hint"}, "No method written yet.");
+
+  const costPanel = el("div", {class:"costcard"},
+    el("div", {class:"eyebrow"}, "Cost per serving"),
+    el("div", {class:"big"}, c.unpriced === c.lines.length && c.lines.length ? "—" : money(c.perServing)),
+    el("div", {class:"sub2", style:"margin-bottom:10px"},
+      money(c.total) + " for " + qtyText(c.servings) + " " + pluralise(c.servings, "serving")),
+    monthAgoLine(r, scale, c),
+    c.unpriced ? el("div", {class:"pill warn", style:"margin-bottom:10px"}, c.unpriced + " " + pluralise(c.unpriced, "line") + " not costed") : null,
+    el("div", {class:"kv"}, el("span", null, "Ingredients"), el("b", null, money(c.ingredCost))),
+    c.labour   ? el("div", {class:"kv"}, el("span", null, "Labour"), el("b", null, money(c.labour))) : null,
+    c.overhead ? el("div", {class:"kv"}, el("span", null, "Overhead"), el("b", null, money(c.overhead))) : null,
+    biz ? businessBlock(r, c) : null,
+    el("div", {class:"row", style:"margin-top:14px"},
+      btn(biz ? "Hide business figures" : "Show business figures", {cls:"ghost sm", onClick:async () => {
+        await saveSettings({businessMode:!biz});
+      }})));
+
+  const sourcing = sourcingSummary(c);
+
+  return el("div", null,
+    backLink("Recipes", "#/recipes"),
+    topbar(r.name || "Untitled", [r.cuisine, r.prepMin ? r.prepMin + " min prep" : null, r.cookMin ? r.cookMin + " min cook" : null].filter(Boolean).join("  ·  "),
+      frag(
+        btn(r.favorite ? "Favourited" : "Favourite", {icon:"star", cls:r.favorite ? "primary" : "", onClick:async () => {
+          await Store.save("recipes", r.id, Object.assign({}, r, {favorite:!r.favorite}));
+        }}),
+        btn("Cheaper swaps", {icon:"spark", onClick:() => openSubstitutes(r), disabled:!S.sampleReady}),
+        hasStock() ? btn("I cooked this", {icon:"check", onClick:() => openCooked(r)}) : null,
+        btn("Edit", {icon:"edit", onClick:() => openRecipeEditor(r)}),
+        btn("Delete", {cls:"danger", icon:"trash", onClick:() => confirmDelete("this recipe", async () => {
+          await Store.remove("recipes", r.id); go("recipes");
+        })}))),
+    r.sourceUrl ? el("div", {class:"banner acc"}, el("div", null, "From ",
+      (safeUrl(r.sourceUrl) ? el("a", {href:safeUrl(r.sourceUrl), target:"_blank", rel:"noopener noreferrer"}, r.sourceUrl) : r.sourceUrl))) : null,
+    el("div", {class:"split"},
+      el("div", {class:"stack"},
+        el("div", null,
+          section("Ingredients", el("label", {class:"f", style:"flex-direction:row;align-items:center;gap:7px"},
+            "Scale",
+            el("input", {type:"number", id:"scale-box", value:String(scale), min:"0.1", step:"0.5", style:"width:78px",
+              oninput:e => { S.ui.scale = parseFloat(e.target.value) || 1; render(); }}), "×")),
+          el("div", {class:"wrap"}, linesTable)),
+        el("div", null, section("Method"), stepsBlock),
+        r.notes ? el("div", null, section("Notes"), el("p", {style:"margin:0;white-space:pre-wrap"}, r.notes)) : null),
+      el("div", {class:"stack"}, costPanel, sourcing)));
+}
+
+/* Per-serving cost against the same recipe priced a month ago. */
+function monthAgoLine(r, scale, c){
+  const then = costRecipe(r, scale, daysAgoISO(TREND_DAYS));
+  if(!then.lines.length || then.unpriced || c.unpriced || !(then.perServing > 0)) return null;
+  const pct = (c.perServing - then.perServing) / then.perServing * 100;
+  if(Math.abs(pct) < 0.5) return null;
+  return el("div", {class:"kv"}, el("span", null, "A month ago"),
+    el("span", null, el("b", {class:"mono"}, money(then.perServing)), " ", trendPill(pct)));
+}
+
+function businessBlock(r, c){
+  const b = r.business || {};
+  const fc = c.foodCostPct;
+  const cls = fc == null ? "flat" : fc <= c.targetPct ? "good" : fc <= c.targetPct + 8 ? "warn" : "bad";
+  return frag(
+    el("div", {class:"kv"}, el("span", null, "Total cost, whole batch"), el("b", null, money(c.total))),
+    el("div", {class:"kv"}, el("span", null, "Target food cost"), el("b", null, c.targetPct ? c.targetPct + "%" : "—")),
+    el("div", {class:"kv"}, el("span", null, "Suggested price / serving"), el("b", null, money(c.suggestedPrice))),
+    el("div", {class:"kv"}, el("span", null, "Your price / serving"), el("b", null, money(c.sellingPrice))),
+    fc != null ? el("div", {class:"kv"}, el("span", null, "Actual food cost"), el("span", {class:"pill " + cls}, fc.toFixed(1) + "%")) : null,
+    c.margin != null ? el("div", {class:"kv"}, el("span", null, "Margin / serving"), el("b", null, money(c.margin))) : null,
+    el("div", {class:"row", style:"margin-top:10px"},
+      btn("Set price and labour", {cls:"sm", onClick:() => openBusinessEditor(r)})));
+}
+
+function sourcingSummary(c){
+  const needs = {};
+  c.lines.forEach(l => {
+    if(!l.ing || l.baseQty == null) return;
+    needs[l.ing.id] = (needs[l.ing.id] || 0) + l.baseQty;
+  });
+  const list = Object.keys(needs).map(k => ({ingredientId:k, baseQty:needs[k]}));
+  if(!list.length) return el("div", {class:"panel"}, el("h3", null, "Sourcing"),
+    el("div", {class:"hint"}, "Link ingredients and add supplier prices to see where to buy."));
+  const plan = sourcingPlan(list);
+  const bySupplier = {};
+  plan.perItem.forEach(i => {
+    if(!i.best) return;
+    const sid = i.best.price.supplierId;
+    bySupplier[sid] = (bySupplier[sid] || 0) + i.cost;
+  });
+  return el("div", {class:"panel"},
+    el("h3", null, "Buy from"),
+    Object.keys(bySupplier).sort((a,b) => bySupplier[b] - bySupplier[a]).map(sid =>
+      el("div", {class:"kv"},
+        el("a", {href:"#/suppliers/" + sid}, (S.ix.sup[sid] && S.ix.sup[sid].name) || "Unknown"),
+        el("b", null, money(bySupplier[sid])))),
+    plan.unpriced.length ? el("div", {class:"hint", style:"margin-top:8px"},
+      plan.unpriced.length + " " + pluralise(plan.unpriced.length, "ingredient") + " has no price yet.") : null);
+}
+
+/* ======================= INGREDIENTS ======================= */
+function viewIngredients(){
+  if(S.route.id) return viewIngredientDetail(S.route.id);
+  const list = S.ingredients.slice().sort((a,b) => (a.name || "").localeCompare(b.name || ""));
+  const out = el("div", null,
+    topbar("Ingredients", "What you buy, and what it costs you", frag(
+      btn("New ingredient", {cls:"primary", icon:"plus", onClick:() => openIngredientEditor(null)}))));
+  if(!list.length){
+    out.append(empty("No ingredients yet", "Add the things you buy, then record what each supplier charges for them.",
+      btn("New ingredient", {cls:"primary", icon:"plus", onClick:() => openIngredientEditor(null)})));
+    return out;
+  }
+  out.append(el("div", {class:"hint", style:"margin:-6px 0 12px"},
+    "Type what you have in the In stock column. The shopping list takes it off, and recipes can be sorted by what you can already cook."));
+  out.append(el("div", {class:"wrap"}, el("table", {class:"sheet"},
+    el("thead", null, el("tr", null,
+      el("th", null, "Ingredient"), el("th", {class:"col-cat"}, "Category"),
+      el("th", {class:"num"}, "Best price"), el("th", null, "From"), el("th", null, "In stock"))),
+    el("tbody", null, list.map(i => {
+      const best = bestPriceFor(i.id);
+      return el("tr", {style:"cursor:pointer", onclick:() => go("ingredients/" + i.id)},
+        el("td", null, el("div", {class:"name"}, i.name), (i.tags || []).length ? el("div", {class:"sub2"}, i.tags.join(", ")) : null),
+        el("td", {class:"thin col-cat"}, i.category || "—"),
+        el("td", {class:"num"}, best ? perUnitText(best.unitCost, i.baseUnit) : "—",
+          best ? el("div", null, trendPill(ingredientTrend(i.id))) : null),
+        el("td", {class:"thin"}, best ? ((best.supplier && best.supplier.name) || "—") : el("span", {class:"pill warn"}, "no price"),
+          best && best.stale ? el("span", {class:"pill warn", style:"margin-left:6px"}, "old") : null),
+        el("td", null, stockInput(i)));
+    })))));
+  return out;
+}
+
+/* Stock is typed in the unit people count in (kg, l, each) and kept in base units. */
+function stockInput(i){
+  const show = SHOW_PER[i.baseUnit] || SHOW_PER.g;
+  const have = num(i.stock) > 0 ? num(i.stock) / show.mult : null;
+  return el("span", {style:"display:inline-flex;align-items:center;gap:5px;white-space:nowrap"},
+    el("input", {type:"number", min:"0", step:"any", inputmode:"decimal", placeholder:"0", style:"width:76px",
+      value: have == null ? "" : String(parseFloat(have.toFixed(3))),
+      onclick:e => e.stopPropagation(),
+      onchange:e => {
+        const v = parseFloat(e.target.value);
+        saveIngredient(Object.assign({}, i, {stock: v > 0 ? v * show.mult : 0, stockAt: todayISO()}));
+      }}),
+    el("span", {class:"sub2"}, show.unit));
+}
+
+/* Every quote on file for an ingredient, newest first, each with its change from
+   the same supplier's previous quote. Shown once there is some history. */
+function priceHistory(i){
+  const quotes = [];
+  S.prices.filter(p => p.ingredientId === i.id && S.ix.sup[p.supplierId]).forEach(p => {
+    [p].concat(p.history || []).forEach(q => {
+      const uc = unitCostOf(q, i);
+      if(uc.ok) quotes.push({sup:S.ix.sup[p.supplierId], date:q.date || "", q:q, unitCost:uc.value, current:q === p});
+    });
+  });
+  if(!quotes.some(x => !x.current)) return null;
+  quotes.sort((a, b) => (a.date > b.date) - (a.date < b.date));
+  const last = {};
+  quotes.forEach(x => {
+    const prev = last[x.sup.id];
+    x.change = prev ? (x.unitCost - prev.unitCost) / prev.unitCost * 100 : null;
+    last[x.sup.id] = x;
+  });
+  quotes.reverse();
+  return el("div", null, section("Price history"),
+    el("div", {class:"wrap"}, el("table", {class:"sheet"},
+      el("thead", null, el("tr", null,
+        el("th", null, "Quoted"), el("th", null, "Supplier"), el("th", {class:"num"}, "Paid"),
+        el("th", {class:"num"}, "Unit price"), el("th", null, "Change"))),
+      el("tbody", null, quotes.map(x => el("tr", null,
+        el("td", {class:"thin"}, x.date || "—", x.current ? el("div", null, el("span", {class:"pill flat"}, "current")) : null),
+        el("td", null, x.sup.name),
+        el("td", {class:"num"}, money(x.q.packPrice),
+          el("div", {class:"sub2"}, qtyText(num(x.q.packQty)) + " " + unitLabel(x.q.packUnit))),
+        el("td", {class:"num"}, perUnitText(x.unitCost, i.baseUnit)),
+        el("td", null, x.change == null ? el("span", {class:"sub2"}, "first")
+          : (trendPill(x.change) || el("span", {class:"sub2"}, "same")))))))));
+}
+
+function viewIngredientDetail(id){
+  const i = S.ix.ing[id];
+  if(!i) return el("div", null, backLink("Ingredients", "#/ingredients"), empty("Ingredient not found", "It may have been deleted."));
+  const rows = pricesFor(id);
+  const used = ingUsage(id);
+  const best = bestPriceFor(id);
+
+  return el("div", null,
+    backLink("Ingredients", "#/ingredients"),
+    topbar(i.name, [i.category, "bought as " + unitLabel(i.baseUnit)].filter(Boolean).join("  ·  "), frag(
+      btn("Add a price", {cls:"primary", icon:"plus", onClick:() => openPriceEditor(null, {ingredientId:id})}),
+      btn("Edit", {icon:"edit", onClick:() => openIngredientEditor(i)}),
+      btn("Delete", {cls:"danger", icon:"trash", onClick:() => confirmDelete(
+        "this ingredient" + (rows.length ? " and its " + rows.length + " " + pluralise(rows.length, "price") : ""),
+        async () => {
+          for(const r of rows) await Store.remove("prices", r.price.id);
+          await Store.remove("ingredients", id); go("ingredients");
+        })}))),
+    el("div", {class:"split"},
+      el("div", {class:"stack"},
+        el("div", null,
+          section("What suppliers charge"),
+          rows.length
+            ? el("div", {class:"wrap"}, el("table", {class:"sheet"},
+                el("thead", null, el("tr", null,
+                  el("th", null, "Supplier"), el("th", null, "Pack"), el("th", {class:"num"}, "Pack price"),
+                  el("th", {class:"num"}, "Unit price"), el("th", null, "Quoted"), el("th", null, ""))),
+                el("tbody", null, rows.map((r, idx) =>
+                  el("tr", null,
+                    el("td", null,
+                      el("div", {class:"name"}, (r.supplier && r.supplier.name) || "Unknown supplier"),
+                      idx === 0 && r.ok ? el("span", {class:"pill good"}, "cheapest") : null,
+                      i.defaultSupplierId === r.price.supplierId ? el("span", {class:"pill acc", style:"margin-left:6px"}, "pinned") : null),
+                    el("td", {class:"thin"}, r.price.packLabel || (qtyText(r.price.packQty) + " " + unitLabel(r.price.packUnit)),
+                      r.price.sku ? el("div", {class:"sub2"}, "code " + r.price.sku) : null),
+                    el("td", {class:"num"}, money(r.price.packPrice)),
+                    el("td", {class:"num"}, r.ok ? perUnitText(r.unitCost, i.baseUnit) : el("span", {class:"pill warn"}, r.reason)),
+                    el("td", {class:"thin"}, r.price.date || "—",
+                      r.stale ? el("div", null, el("span", {class:"pill warn"}, r.age + " days old")) : null),
+                    el("td", {class:"num"},
+                      btn("Edit", {cls:"ghost sm", onClick:() => openPriceEditor(r.price)}),
+                      i.defaultSupplierId === r.price.supplierId
+                        ? btn("Unpin", {cls:"ghost sm", onClick:() => saveIngredient(Object.assign({}, i, {defaultSupplierId:""}))})
+                        : btn("Always use", {cls:"ghost sm", onClick:() => saveIngredient(Object.assign({}, i, {defaultSupplierId:r.price.supplierId}))})))))))
+            : empty("No prices yet", "Add what a supplier charges for a pack, and every recipe using this will cost itself.",
+                btn("Add a price", {cls:"primary", icon:"plus", onClick:() => openPriceEditor(null, {ingredientId:id})}))),
+        priceHistory(i),
+        used.length ? el("div", null, section("Used in"),
+          el("div", {class:"cards"}, used.map(recipeCard))) : null),
+      el("div", {class:"stack"},
+        el("div", {class:"costcard"},
+          el("div", {class:"eyebrow"}, "You pay"),
+          el("div", {class:"big"}, best ? perUnitText(best.unitCost, i.baseUnit).split(" / ")[0] : "—"),
+          el("div", {class:"sub2"}, best ? "per " + (SHOW_PER[i.baseUnit] || SHOW_PER.g).unit + " · " + ((best.supplier && best.supplier.name) || "") : "no price on file"),
+          best && ingredientTrend(id) != null ? el("div", {class:"kv", style:"margin-top:10px"}, el("span", null, "Against a month ago"), trendPill(ingredientTrend(id)) || el("b", null, "no change")) : null,
+          rows.length > 1 && rows[0].ok && rows[rows.length-1].ok
+            ? el("div", {class:"kv", style:"margin-top:10px"}, el("span", null, "Dearest quote"), el("b", null, perUnitText(rows[rows.length-1].unitCost, i.baseUnit)))
+            : null),
+        el("div", {class:"panel"},
+          el("h3", null, "In stock"),
+          stockInput(i),
+          el("div", {class:"hint", style:"margin-top:8px"},
+            num(i.stock) > 0 && i.stockAt ? "Last counted: " + niceDate(i.stockAt) : "Nothing recorded yet.")),
+        el("div", {class:"panel"},
+          el("h3", null, "Conversion facts"),
+          el("div", {class:"kv"}, el("span", null, "Density"), el("b", null, i.densityGPerMl ? i.densityGPerMl + " g/ml" : "—")),
+          el("div", {class:"kv"}, el("span", null, "Weight per piece"), el("b", null, i.gramsPerEach ? i.gramsPerEach + " g" : "—")),
+          el("div", {class:"hint", style:"margin-top:8px"},
+            "These let a recipe written in cups or pieces be costed against a price per kilo.")))));
+}
+
+/* ======================= SUPPLIERS ======================= */
+function viewSuppliers(){
+  if(S.route.id) return viewSupplierDetail(S.route.id);
+  const list = S.suppliers.slice().sort((a,b) => (a.name || "").localeCompare(b.name || ""));
+  const out = el("div", null,
+    topbar("Suppliers", "Who you buy from, and what they charge", frag(
+      btn("Scan a bill", {icon:"spark", onClick:() => openBillScan(null), disabled:!S.sampleReady || !S.suppliers.length}),
+      btn("New supplier", {cls:"primary", icon:"plus", onClick:() => openSupplierEditor(null)}))));
+  if(!list.length){
+    out.append(empty("No suppliers yet", "Add a shop, wholesaler or market stall, then record their prices.",
+      btn("New supplier", {cls:"primary", icon:"plus", onClick:() => openSupplierEditor(null)})));
+    return out;
+  }
+  out.append(el("div", {class:"cards"}, list.map(s => {
+    const items = supplierItems(s.id).length;
+    const wins  = cheapestOnCount(s.id);
+    return el("button", {class:"rcard", onclick:() => go("suppliers/" + s.id)},
+      el("h3", null, s.name),
+      el("div", {class:"sub2"}, [(s.contact && s.contact.phone), (s.contact && s.contact.address)].filter(Boolean).join("  ·  ") || "No contact details yet"),
+      el("div", {class:"tags"},
+        el("span", {class:"tag"}, items + " " + pluralise(items, "price")),
+        wins ? el("span", {class:"pill good"}, "cheapest on " + wins) : null,
+        num(s.minOrder) ? el("span", {class:"tag"}, "min " + money(s.minOrder)) : null),
+      el("div", {class:"foot"},
+        el("span", {class:"sub2"}, num(s.leadTimeDays) ? s.leadTimeDays + " day lead" : "—"),
+        el("span", {class:"cost"}, (s.deliveryDays || []).join(" ") || "")));
+  })));
+  return out;
+}
+
+function viewSupplierDetail(id){
+  const s = S.ix.sup[id];
+  if(!s) return el("div", null, backLink("Suppliers", "#/suppliers"), empty("Supplier not found", "It may have been deleted."));
+  const rows = supplierItems(id).map(p => {
+    const ing = S.ix.ing[p.ingredientId];
+    const uc  = unitCostOf(p, ing);
+    const best= ing ? bestPriceFor(ing.id) : null;
+    return {price:p, ing:ing, ok:uc.ok, reason:uc.reason, unitCost: uc.ok ? uc.value : null,
+      isBest: !!(best && best.price.id === p.id), stale: (daysSince(p.date) || 0) > STALE_DAYS};
+  }).sort((a,b) => ((a.ing && a.ing.name) || "").localeCompare((b.ing && b.ing.name) || ""));
+  const c = s.contact || {};
+
+  return el("div", null,
+    backLink("Suppliers", "#/suppliers"),
+    topbar(s.name, "Supplier", frag(
+      btn("Scan a bill", {cls:"primary", icon:"spark", onClick:() => openBillScan(id), disabled:!S.sampleReady}),
+      btn("Add a price", {icon:"plus", onClick:() => openPriceEditor(null, {supplierId:id})}),
+      btn("Edit", {icon:"edit", onClick:() => openSupplierEditor(s)}),
+      btn("Delete", {cls:"danger", icon:"trash", onClick:() => confirmDelete(
+        "this supplier" + (rows.length ? " and its " + rows.length + " " + pluralise(rows.length, "price") : ""),
+        async () => {
+          for(const r of rows) await Store.remove("prices", r.price.id);
+          await Store.remove("suppliers", id); go("suppliers");
+        })}))),
+    el("div", {class:"split"},
+      el("div", {class:"stack"},
+        el("div", null,
+          section("Their price list", el("span", {class:"eyebrow"}, rows.length + " " + pluralise(rows.length, "item"))),
+          rows.length
+            ? el("div", {class:"wrap"}, el("table", {class:"sheet"},
+                el("thead", null, el("tr", null,
+                  el("th", null, "Ingredient"), el("th", null, "Pack"), el("th", {class:"num"}, "Price"),
+                  el("th", {class:"num"}, "Unit price"), el("th", null, "Quoted"), el("th", null, ""))),
+                el("tbody", null, rows.map(r =>
+                  el("tr", null,
+                    el("td", null,
+                      r.ing ? el("a", {href:"#/ingredients/" + r.ing.id, class:"name"}, r.ing.name) : el("span", {class:"pill warn"}, "unknown ingredient"),
+                      r.isBest ? el("span", {class:"pill good", style:"margin-left:6px"}, "best") : null),
+                    el("td", {class:"thin"}, r.price.packLabel || (qtyText(r.price.packQty) + " " + unitLabel(r.price.packUnit))),
+                    el("td", {class:"num"}, money(r.price.packPrice)),
+                    el("td", {class:"num"}, r.ok && r.ing ? perUnitText(r.unitCost, r.ing.baseUnit) : el("span", {class:"pill warn"}, r.reason || "—")),
+                    el("td", {class:"thin"}, r.price.date || "—", r.stale ? el("div", null, el("span", {class:"pill warn"}, "old")) : null),
+                    el("td", {class:"num"},
+                      btn("Edit", {cls:"ghost sm", onClick:() => openPriceEditor(r.price)}),
+                      btn("Remove", {cls:"ghost sm", onClick:() => confirmDelete("this price", async () => { await Store.remove("prices", r.price.id); })})))))))
+            : empty("No prices recorded", "Add what this supplier charges for a pack of something.",
+                btn("Add a price", {cls:"primary", icon:"plus", onClick:() => openPriceEditor(null, {supplierId:id})})))),
+      el("div", {class:"stack"},
+        el("div", {class:"panel"},
+          el("h3", null, "Contact"),
+          contactRow("Phone", c.phone, c.phone ? "tel:" + c.phone : null),
+          contactRow("Email", c.email, c.email ? "mailto:" + c.email : null),
+          contactRow("Website", c.website, safeUrl(c.website)),
+          contactRow("Address", c.address, null),
+          !c.phone && !c.email && !c.website && !c.address ? el("div", {class:"hint"}, "No contact details yet.") : null),
+        el("div", {class:"panel"},
+          el("h3", null, "Ordering"),
+          el("div", {class:"kv"}, el("span", null, "Minimum order"), el("b", null, num(s.minOrder) ? money(s.minOrder) : "—")),
+          el("div", {class:"kv"}, el("span", null, "Delivery fee"), el("b", null, num(s.deliveryFee) ? money(s.deliveryFee) : "—")),
+          el("div", {class:"kv"}, el("span", null, "Lead time"), el("b", null, num(s.leadTimeDays) ? s.leadTimeDays + " days" : "—")),
+          el("div", {class:"kv"}, el("span", null, "Delivery days"), el("b", null, (s.deliveryDays || []).join(", ") || "—")),
+          el("div", {class:"kv"}, el("span", null, "Cheapest on"), el("b", null, cheapestOnCount(id) + " items")),
+          s.notes ? el("div", {class:"hint", style:"margin-top:10px;white-space:pre-wrap"}, s.notes) : null))));
+}
+function contactRow(label, value, href){
+  if(!value) return null;
+  return el("div", {class:"kv"}, el("span", null, label),
+    href ? el("a", {href:href, target: href.slice(0,4) === "http" ? "_blank" : null, rel:"noopener noreferrer"}, value) : el("b", {style:"font-family:var(--body)"}, value));
+}
+
+/* ======================= SHOPPING ======================= */
+function prettyBase(qty, baseUnit){
+  if(baseUnit === "each") return qtyText(qty) + " each";
+  if(baseUnit === "ml") return qty >= 1000 ? qtyText(qty/1000) + " l" : qtyText(qty) + " ml";
+  return qty >= 1000 ? qtyText(qty/1000) + " kg" : qtyText(qty) + " g";
+}
+function shoppingNeeds(){
+  const needs = {};
+  Object.keys(S.shopping.recipes || {}).forEach(rid => {
+    const mult = num(S.shopping.recipes[rid]);
+    if(!(mult > 0)) return;
+    const r = S.recipes.find(x => x.id === rid);
+    if(!r) return;
+    const n = recipeNeeds(r, mult).need;
+    Object.keys(n).forEach(id => { needs[id] = (needs[id] || 0) + n[id]; });
+  });
+  (S.shopping.extras || []).forEach(x => {
+    const ing = S.ix.ing[x.ingredientId];
+    if(!ing) return;
+    const conv = convert(x.qty, x.unit, ing.baseUnit, ing);
+    if(conv.ok) needs[ing.id] = (needs[ing.id] || 0) + conv.value;
+  });
+  /* What you already have comes off the list, unless stock is switched off. */
+  const useStock = S.shopping.useStock !== false;
+  return Object.keys(needs).map(k => {
+    const have = useStock ? Math.min(stockOf(k), needs[k]) : 0;
+    return {ingredientId:k, need:needs[k], have:have, baseQty:Math.max(0, needs[k] - have)};
+  });
+}
+
+function orderCard(o){
+  const sup = o.supplier, c = sup.contact || {};
+  const phone = String(c.phone || "").replace(/[^\d+]/g, "");
+  const wa = phone.replace(/^\+/, "");
+  const box = el("textarea", {readonly:"readonly", style:"min-height:150px;font-size:13px"}, o.text);
+  const linkBtn = (label, href, blank) => el("a", {class:"btn sm", href:href, target: blank ? "_blank" : null,
+    rel:"noopener noreferrer", style:"text-decoration:none"}, label);
+  return el("div", {class:"panel"},
+    el("div", {class:"row", style:"align-items:baseline;justify-content:space-between"},
+      el("h3", {style:"margin:0"}, sup.name), el("b", {class:"mono"}, money(o.total))),
+    el("div", {class:"sub2", style:"margin:4px 0 10px"},
+      o.lines.length + " " + pluralise(o.lines.length, "item") +
+      (o.when ? " · delivery " + o.when.toLocaleDateString(undefined, {weekday:"short", day:"numeric", month:"short"}) : "")),
+    o.belowMin ? el("div", {class:"pill warn", style:"margin-bottom:8px"}, "under their " + money(o.minOrder) + " minimum") : null,
+    box,
+    el("div", {class:"row", style:"margin-top:10px"},
+      btn("Copy", {cls:"sm", icon:"copy", onClick:() => copyText(o.text, box)}),
+      wa.length >= 8 ? linkBtn("WhatsApp", "https://wa.me/" + wa + "?text=" + encodeURIComponent(o.text), true) : null,
+      phone ? linkBtn("Text", "sms:" + phone + "?body=" + encodeURIComponent(o.text)) : null,
+      c.email ? linkBtn("Email", "mailto:" + c.email + "?subject=" + encodeURIComponent("Order") +
+        "&body=" + encodeURIComponent(o.text)) : null));
+}
+
+async function copyText(text, box){
+  try { await navigator.clipboard.writeText(text); toast("Copied"); return; } catch(e){}
+  try { box.focus(); box.select(); document.execCommand("copy"); toast("Copied"); }
+  catch(e){ toast("Select the text and copy it"); }
+}
+
+function viewShopping(){
+  const all = shoppingNeeds();
+  const needs = all.filter(n => n.baseQty > 1e-6);
+  const covered = all.length - needs.length;
+  const plan  = needs.length ? sourcingPlan(needs) : null;
+  const orders = plan ? buildOrders(plan) : [];
+  const wholeTotal = orders.reduce((s, o) => s + o.total, 0);
+  const chosen = Object.keys(S.shopping.recipes || {}).filter(k => num(S.shopping.recipes[k]) > 0).length;
+  const useStock = S.shopping.useStock !== false;
+
+  const picker = el("div", {class:"panel"},
+    el("h3", null, "Cooking what?"),
+    S.recipes.length
+      ? el("div", null, S.recipes.slice().sort((a,b) => (a.name || "").localeCompare(b.name || "")).map(r =>
+          el("div", {class:"kv"},
+            el("span", null, r.name),
+            el("input", {type:"number", min:"0", step:"1", style:"width:74px", value:String(num(S.shopping.recipes[r.id]) || 0),
+              id:"shop-" + r.id,
+              oninput:e => { S.shopping.recipes[r.id] = parseFloat(e.target.value) || 0; saveShoppingSoon(); render(); }}))))
+      : el("div", {class:"hint"}, "Add a recipe first."));
+
+  const extras = el("div", {class:"panel"},
+    el("h3", null, "Extras"),
+    (S.shopping.extras || []).length
+      ? el("div", null, S.shopping.extras.map((x, i) =>
+          el("div", {class:"kv"},
+            el("span", null, (S.ix.ing[x.ingredientId] && S.ix.ing[x.ingredientId].name) || "—"),
+            el("span", null, el("b", null, qtyText(x.qty) + " " + unitLabel(x.unit)), " ",
+              btn("×", {cls:"ghost sm", onClick:() => { S.shopping.extras.splice(i,1); saveShoppingSoon(); render(); }})))))
+      : el("div", {class:"hint"}, "Nothing extra."),
+    el("div", {style:"margin-top:10px"}, btn("Add an item", {cls:"sm", icon:"plus", onClick:openExtraItem, disabled:!S.ingredients.length})));
+
+  const stockPanel = hasStock() ? el("div", {class:"panel"},
+    el("h3", null, "Your stock"),
+    el("div", {class:"hint", style:"margin-bottom:10px"}, useStock
+      ? "What you already have is taken off the list" + (covered ? " — " + covered + " " + pluralise(covered, "item") + " fully covered." : ".")
+      : "Stock is ignored; the list is everything the recipes need."),
+    btn(useStock ? "Using what's in stock" : "Ignoring stock", {cls:"sm " + (useStock ? "primary" : ""),
+      icon: useStock ? "check" : null,
+      onClick:async () => { S.shopping.useStock = !useStock; await saveShopping(); render(); }})) : null;
+
+  let main;
+  if(needs.length){
+    main = frag(
+      el("div", null,
+        section("Cheapest split", el("span", {class:"eyebrow"}, money(plan.splitTotal) + " total")),
+        el("div", {class:"wrap"}, el("table", {class:"sheet"},
+          el("thead", null, el("tr", null,
+            el("th", null, "Buy"), el("th", {class:"num"}, "Amount"), el("th", null, "From"), el("th", {class:"num"}, "Cost"))),
+          el("tbody", null, plan.perItem.slice().sort((a,b) => (b.cost || 0) - (a.cost || 0)).map(i =>
+            el("tr", null,
+              el("td", null, el("a", {href:"#/ingredients/" + i.ingredientId, class:"name"}, (i.ing && i.ing.name) || "—")),
+              el("td", {class:"num"}, prettyBase(i.baseQty, (i.ing && i.ing.baseUnit) || "g"),
+                i.have > 0 ? el("div", {class:"sub2"}, "have " + prettyBase(i.have, (i.ing && i.ing.baseUnit) || "g")) : null),
+              el("td", {class:"thin"}, i.best
+                ? el("a", {href:"#/suppliers/" + i.best.price.supplierId}, (i.best.supplier && i.best.supplier.name) || "—")
+                : el("span", {class:"pill warn"}, "no price")),
+              el("td", {class:"num"}, i.cost == null ? "—" : money(i.cost)))))))),
+      orders.length ? el("div", null,
+        section("Orders to send", el("span", {class:"eyebrow"}, money(wholeTotal) + " in whole packs")),
+        el("div", {class:"hint", style:"margin:-4px 0 12px"},
+          "Rounded up to whole packs of what each supplier sells. WhatsApp needs the supplier's number saved with its country code."),
+        el("div", {class:"stack"}, orders.map(orderCard))) : null,
+      plan.baskets.length ? el("div", null,
+        section("Or buy it all in one place"),
+        el("div", {class:"wrap"}, el("table", {class:"sheet"},
+          el("thead", null, el("tr", null,
+            el("th", null, "Supplier"), el("th", {class:"num"}, "Items"), el("th", {class:"num"}, "Basket"), el("th", null, "Watch out for"))),
+          el("tbody", null, plan.baskets.map(b =>
+            el("tr", null,
+              el("td", null, el("a", {href:"#/suppliers/" + (b.supplier && b.supplier.id), class:"name"}, (b.supplier && b.supplier.name) || "—")),
+              el("td", {class:"num"}, b.covered.length + " of " + plan.perItem.length),
+              el("td", {class:"num"}, money(b.total + b.delivery)),
+              el("td", {class:"thin"},
+                b.missing.length ? el("div", null, el("span", {class:"pill warn"}, "no price for " + b.missing.map(m => (m.ing && m.ing.name) || "?").slice(0,3).join(", "))) : null,
+                b.belowMin ? el("div", null, el("span", {class:"pill warn"}, "under their " + money(b.minOrder) + " minimum")) : null,
+                b.delivery ? el("div", null, el("span", {class:"pill flat"}, "includes " + money(b.delivery) + " delivery")) : null,
+                !b.missing.length && !b.belowMin && !b.delivery ? el("span", {class:"pill good"}, "covers everything") : null))))))) : null);
+  } else if(all.length){
+    main = empty("Everything is in stock", "You already have all of it. Cook away.");
+  } else {
+    main = empty("Nothing on the list yet", "Choose a recipe and how many batches, and this works out what to buy and from whom.");
+  }
+
+  return el("div", null,
+    topbar("Shopping", chosen ? chosen + " " + pluralise(chosen, "recipe") + " on the list" : "Pick what you are cooking", frag(
+      needs.length ? btn("Export list", {icon:"down", onClick:() => exportShopping(plan)}) : null,
+      all.length ? btn("Clear", {cls:"ghost", onClick:async () => {
+        S.shopping = {recipes:{}, extras:[], useStock:useStock}; await saveShopping(); render(); }}) : null)),
+    el("div", {class:"split"},
+      el("div", {class:"stack"}, main),
+      el("div", {class:"stack"},
+        needs.length ? el("div", {class:"costcard"},
+          el("div", {class:"eyebrow"}, "Cheapest split total"),
+          el("div", {class:"big"}, money(plan.splitTotal)),
+          el("div", {class:"sub2"}, needs.length + " " + pluralise(needs.length, "ingredient") + " across " +
+            new Set(plan.perItem.filter(i => i.best).map(i => i.best.price.supplierId)).size + " suppliers"),
+          wholeTotal ? el("div", {class:"kv", style:"margin-top:10px"}, el("span", null, "Paid in whole packs"), el("b", null, money(wholeTotal))) : null,
+          plan.unpriced.length ? el("div", {class:"pill warn", style:"margin-top:10px"}, plan.unpriced.length + " with no price") : null) : null,
+        stockPanel, picker, extras)));
+}
+
+/* ======================= SETTINGS ======================= */
+function viewSettings(){
+  const set = S.settings;
+  const t = set.taste || {};
+  const lastFeed = recentFeed()[0];
+  const exampleCount = ["suppliers","ingredients","prices","recipes"]
+    .reduce((n, c) => n + S[c].filter(x => x.example).length, 0);
+
+  return el("div", null,
+    topbar("Settings", "How the book counts, and what it looks for"),
+    el("div", {class:"split"},
+      el("div", {class:"stack"},
+        el("div", {class:"panel"},
+          el("h3", null, "Money"),
+          el("div", {class:"grid3"},
+            field("Currency code", textInput(set.currency, v => saveSettings({currency:v}), {id:"set-cur"})),
+            field("Symbol", textInput(set.symbol, v => saveSettings({symbol:v}), {id:"set-sym"})),
+            field("Target food cost %", textInput(set.targetFoodCostPct, v => saveSettings({targetFoodCostPct:parseFloat(v) || 0}), {type:"number", id:"set-fc"}))),
+          el("div", {class:"grid2", style:"margin-top:12px"},
+            field("Labour rate per hour", textInput(set.labourPerHour, v => saveSettings({labourPerHour:parseFloat(v) || 0}), {type:"number", id:"set-lab"}),
+              "Used only when a recipe records prep minutes."),
+            field("Overhead % on ingredients", textInput(set.overheadPct, v => saveSettings({overheadPct:parseFloat(v) || 0}), {type:"number", id:"set-oh"}),
+              "Gas, packaging, wastage — a flat uplift.")),
+          el("div", {style:"margin-top:12px"},
+            btn(set.businessMode ? "Business figures are on" : "Business figures are off",
+              {icon:set.businessMode ? "check" : null, cls:set.businessMode ? "primary" : "", onClick:() => saveSettings({businessMode:!set.businessMode})}))),
+
+        el("div", {class:"panel"},
+          el("h3", null, "What to look for"),
+          el("div", {class:"hint", style:"margin-bottom:12px"},
+            "This steers everything Claude writes for you."),
+          el("div", {class:"grid2"},
+            field("Cuisines you like", textInput(t.cuisines, v => saveTaste({cuisines:v}), {id:"t-cui", placeholder:"Nepali, Thai, Italian"})),
+            field("Diet", textInput(t.diet, v => saveTaste({diet:v}), {id:"t-diet", placeholder:"vegetarian, low salt"}))),
+          el("div", {class:"grid2", style:"margin-top:12px"},
+            field("Avoid", textInput(t.dislikes, v => saveTaste({dislikes:v}), {id:"t-dis", placeholder:"coriander, shellfish"})),
+            field("Anything else", textInput(t.notes, v => saveTaste({notes:v}), {id:"t-notes", placeholder:"weeknight, under 30 minutes"})))),
+
+        el("div", {class:"panel"},
+          el("h3", null, "Orders and alerts"),
+          el("div", {class:"grid2"},
+            field("Your name on orders", textInput(set.orderName, v => saveSettings({orderName:v}), {id:"set-oname", placeholder:"Rabin"}),
+              "Signs the order messages on the Shopping page."),
+            field("Flag a recipe when its cost moves by (%)", textInput(set.alertPct, v => saveSettings({alertPct:parseFloat(v) || 0}), {type:"number", id:"set-alert"}),
+              "Compared with the same recipe priced a month ago."))),
+
+        el("div", {class:"panel"},
+          el("h3", null, "Your data"),
+          el("div", {class:"kv"}, el("span", null, "Recipes"), el("b", null, String(S.recipes.length))),
+          el("div", {class:"kv"}, el("span", null, "Ingredients"), el("b", null, String(S.ingredients.length))),
+          el("div", {class:"kv"}, el("span", null, "Suppliers"), el("b", null, String(S.suppliers.length))),
+          el("div", {class:"kv"}, el("span", null, "Prices"), el("b", null, String(S.prices.length))),
+          el("div", {class:"row", style:"margin-top:14px"},
+            btn("Download a backup", {icon:"down", onClick:exportAll}),
+            btn("Restore from backup", {icon:"save", onClick:openImportData}),
+            exampleCount ? btn("Remove the " + exampleCount + " example rows", {cls:"danger", icon:"trash", onClick:removeExamples}) : null))),
+
+      el("div", {class:"stack"},
+        el("div", {class:"panel"},
+          el("h3", null, "Where this is saved"),
+          el("div", {class:"storepill", style:"margin-bottom:8px"}, el("i", {class:"dot"}), "On this device"),
+          el("div", {class:"hint"},
+            "Your book lives on this phone or computer and works with no signal. ",
+            "It does not travel by itself — to move it, download a backup here and restore it on the other device.")),
+
+        el("div", {class:"panel"},
+          el("h3", null, "Claude features"),
+          el("div", {class:"keyrow"},
+            field("Anthropic API key",
+              el("input", {type:"password", id:"api-key", placeholder:"sk-ant-...", autocomplete:"off",
+                value:AI.key(), onchange:e => AI.setKey(e.target.value)}))),
+          el("div", {class:"hint", style:"margin-top:8px"},
+            AI.key()
+              ? "Key saved. Write me a recipe, Ideas now, Paste a recipe, Cheaper swaps and Scan a bill are switched on."
+              : "Without a key those buttons stay off; everything else works. Get one at console.anthropic.com, then paste it here."),
+          el("div", {class:"hint", style:"margin-top:6px"},
+            "The key is kept in this browser only and is sent to api.anthropic.com and nowhere else. ",
+            "Asking Claude costs money on your own account.",
+            AI.key() ? el("div", {style:"margin-top:8px"},
+              btn("Forget the key", {cls:"danger sm", onClick:() => { AI.setKey(""); toast("Key removed"); }})) : null)),
+        el("div", {class:"panel"},
+          el("h3", null, "Where new recipes come from"),
+          el("div", {class:"kv"}, el("span", null, "Last batch filed"), el("b", null, lastFeed ? niceDate(lastFeed.id) : "none yet")),
+          el("div", {class:"hint", style:"margin-top:8px"},
+            "Ideas now, Write me a recipe and Paste a recipe work whenever you ask, steered by what you set above. ",
+            "They need a connection and your API key; the rest of the book works with no signal at all.")),
+        el("div", {class:"panel"},
+          el("h3", null, "Check the maths"),
+          el("div", {class:"hint"},
+            "Add ", el("code", null, "?selftest"), " to this page address to run the unit-conversion and costing checks.")))));
+}
+
+/* ======================= save helpers ======================= */
+async function saveSettings(patch){
+  S.settings = Object.assign({}, S.settings, patch);
+  await Store.save("settings", "app", S.settings);
+  render();
+}
+async function saveTaste(patch){
+  const taste = Object.assign({}, S.settings.taste || {}, patch);
+  await saveSettings({taste:taste});
+}
+async function saveIngredient(ing){ await Store.save("ingredients", ing.id, ing); }
+let shopTimer = null;
+function saveShoppingSoon(){ clearTimeout(shopTimer); shopTimer = setTimeout(saveShopping, 700); }
+async function saveShopping(){ await Store.save("shopping", "current", S.shopping); }
+
+/* ======================= editors ======================= */
+function openSupplierEditor(s){
+  const d = Object.assign({name:"", contact:{}, minOrder:"", deliveryFee:"", leadTimeDays:"", deliveryDays:[], notes:""}, s || {});
+  d.contact = Object.assign({}, d.contact);
+  openModal({
+    title: s ? "Edit supplier" : "New supplier",
+    body: () => frag(
+      field("Name", textInput(d.name, v => d.name = v, {id:"sup-name", placeholder:"Metro Wholesale"})),
+      el("div", {class:"grid2"},
+        field("Phone", textInput(d.contact.phone, v => d.contact.phone = v)),
+        field("Email", textInput(d.contact.email, v => d.contact.email = v))),
+      el("div", {class:"grid2"},
+        field("Website", textInput(d.contact.website, v => d.contact.website = v)),
+        field("Address", textInput(d.contact.address, v => d.contact.address = v))),
+      el("div", {class:"grid3"},
+        field("Minimum order", textInput(d.minOrder, v => d.minOrder = v, {type:"number"})),
+        field("Delivery fee", textInput(d.deliveryFee, v => d.deliveryFee = v, {type:"number"})),
+        field("Lead time (days)", textInput(d.leadTimeDays, v => d.leadTimeDays = v, {type:"number"}))),
+      field("Delivery days", textInput((d.deliveryDays || []).join(", "), v => d.deliveryDays = v.split(",").map(x => x.trim()).filter(Boolean)), "Mon, Thu"),
+      field("Notes", el("textarea", {oninput:e => d.notes = e.target.value}, d.notes || ""))),
+    footer: () => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Save supplier", {cls:"primary", icon:"save", onClick:async () => {
+        if(!d.name.trim()) return toast("Give the supplier a name");
+        await Store.save("suppliers", s ? s.id : null, d);
+        closeModal(); toast("Saved");
+      }}))
+  });
+}
+
+function openIngredientEditor(i){
+  const d = Object.assign({name:"", category:"", baseUnit:"g", densityGPerMl:"", gramsPerEach:"", defaultSupplierId:"", aliases:[], tags:[]}, i || {});
+  const rerender = () => renderModal();
+  openModal({
+    title: i ? "Edit ingredient" : "New ingredient",
+    body: () => frag(
+      el("div", {class:"grid2"},
+        field("Name", textInput(d.name, v => d.name = v, {id:"ing-name", placeholder:"Plain flour"})),
+        field("Category", textInput(d.category, v => d.category = v, {placeholder:"Dry goods"}))),
+      field("Bought and measured in", selectInput(d.baseUnit, BASE_UNITS.map(u => ({value:u, label:UNITS[u].label + (u === "g" ? "  (by weight)" : u === "ml" ? "  (by volume)" : "  (by the piece)")})),
+        v => { d.baseUnit = v; rerender(); }),
+        "Everything is costed back to this unit."),
+      el("div", {class:"grid2"},
+        field("Density (g per ml)", textInput(d.densityGPerMl, v => d.densityGPerMl = v, {type:"number", step:"0.01"}),
+          "Lets cups and spoons be costed against a price per kilo."),
+        field("Weight per piece (g)", textInput(d.gramsPerEach, v => d.gramsPerEach = v, {type:"number"}),
+          "One egg, one onion — in grams.")),
+      field("Always buy from", selectInput(d.defaultSupplierId,
+        [{value:"", label:"Whoever is cheapest"}].concat(S.suppliers.map(s => ({value:s.id, label:s.name}))),
+        v => d.defaultSupplierId = v)),
+      field("Also known as", textInput((d.aliases || []).join(", "), v => d.aliases = v.split(",").map(x => x.trim()).filter(Boolean)),
+        "Other names a recipe might use, comma separated.")),
+    footer: () => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Save ingredient", {cls:"primary", icon:"save", onClick:async () => {
+        if(!d.name.trim()) return toast("Give the ingredient a name");
+        await Store.save("ingredients", i ? i.id : null, d);
+        closeModal(); toast("Saved");
+      }}))
+  });
+}
+
+function openPriceEditor(p, preset){
+  const d = Object.assign({supplierId:"", ingredientId:"", packLabel:"", packQty:"", packUnit:"kg", packPrice:"", date:todayISO(), sku:"", notes:""}, p || {}, preset || {});
+  if(!S.suppliers.length) return toast("Add a supplier first");
+  if(!S.ingredients.length) return toast("Add an ingredient first");
+  if(!d.supplierId) d.supplierId = S.suppliers[0].id;
+  if(!d.ingredientId) d.ingredientId = S.ingredients[0].id;
+  const preview = el("div", {class:"hint"});
+  const updatePreview = () => {
+    const ing = S.ix.ing[d.ingredientId];
+    const uc = unitCostOf(d, ing);
+    preview.textContent = uc.ok
+      ? "That works out at " + perUnitText(uc.value, ing.baseUnit) + "."
+      : "Cannot work out a unit price: " + (uc.reason || "check the pack size");
+  };
+  openModal({
+    title: p ? "Edit price" : "Record a price",
+    body: () => {
+      const body = frag(
+        el("div", {class:"grid2"},
+          field("Supplier", selectInput(d.supplierId, S.suppliers.map(s => ({value:s.id, label:s.name})), v => { d.supplierId = v; })),
+          field("Ingredient", selectInput(d.ingredientId, S.ingredients.map(i => ({value:i.id, label:i.name})), v => { d.ingredientId = v; updatePreview(); }))),
+        el("div", {class:"grid3"},
+          field("Pack size", textInput(d.packQty, v => { d.packQty = v; updatePreview(); }, {type:"number", step:"any", id:"p-qty"})),
+          field("Unit", selectInput(d.packUnit, unitOptions(), v => { d.packUnit = v; updatePreview(); })),
+          field("Pack price", textInput(d.packPrice, v => { d.packPrice = v; updatePreview(); }, {type:"number", step:"any"}))),
+        preview,
+        el("div", {class:"grid3"},
+          field("Label", textInput(d.packLabel, v => d.packLabel = v, {placeholder:"25 kg sack"})),
+          field("Supplier code", textInput(d.sku, v => d.sku = v)),
+          field("Quoted on", textInput(d.date, v => d.date = v, {type:"date"}))));
+      setTimeout(updatePreview, 0);
+      return body;
+    },
+    footer: () => frag(
+      p ? btn("Delete", {cls:"danger", icon:"trash", onClick:() => confirmDelete("this price", async () => { await Store.remove("prices", p.id); })}) : null,
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Save price", {cls:"primary", icon:"save", onClick:async () => {
+        if(!(num(d.packQty) > 0) || !(num(d.packPrice) >= 0)) return toast("Pack size and price, please");
+        await savePrice(p, d);
+        closeModal(); toast("Price saved");
+      }}))
+  });
+}
+
+function blankLine(){ return {ingredientId:null, rawName:"", qty:1, unit:"g", wastePct:0, note:""}; }
+
+function openRecipeEditor(r, prefill){
+  const d = Object.assign({
+    name:"", cuisine:"", tags:[], servings:4, yieldQty:"", yieldUnit:"",
+    lines:[blankLine()], steps:[], prepMin:"", cookMin:"", source:"own", sourceUrl:"",
+    notes:"", business:{}, favorite:false, createdAt:new Date().toISOString()
+  }, r || {}, prefill || {});
+  d.lines = (d.lines && d.lines.length ? d.lines : [blankLine()]).map(l => Object.assign({}, l));
+  d.business = Object.assign({}, d.business);
+  const rerender = () => renderModal();
+
+  const lineRow = (l, idx) => el("div", {class:"lineRow"},
+    el("input", {type:"text", list:"ing-list", value:l.rawName || (l.ingredientId && S.ix.ing[l.ingredientId] ? S.ix.ing[l.ingredientId].name : ""),
+      placeholder:"Plain flour",
+      oninput:e => {
+        l.rawName = e.target.value;
+        const hit = S.ingredients.find(i => i.name.toLowerCase() === e.target.value.toLowerCase().trim()) || matchIngredient(e.target.value);
+        l.ingredientId = hit ? hit.id : null;
+        e.target.style.borderColor = hit ? "var(--good)" : "var(--line-2)";
+      }}),
+    el("input", {type:"number", step:"any", value:String(l.qty == null ? "" : l.qty), oninput:e => l.qty = parseFloat(e.target.value)}),
+    selectInput(l.unit, unitOptions(), v => l.unit = v),
+    el("input", {class:"waste", type:"number", value:String(l.wastePct || 0), title:"Waste %", oninput:e => l.wastePct = parseFloat(e.target.value) || 0}),
+    el("button", {class:"del", type:"button", title:"Remove line", onclick:() => { d.lines.splice(idx, 1); if(!d.lines.length) d.lines.push(blankLine()); rerender(); }}, "×"));
+
+  openModal({
+    wide:true,
+    title: r ? "Edit recipe" : "New recipe",
+    body: () => frag(
+      el("datalist", {id:"ing-list"}, S.ingredients.map(i => el("option", {value:i.name}))),
+      el("div", {class:"grid2"},
+        field("Name", textInput(d.name, v => d.name = v, {id:"r-name", placeholder:"Sunday chicken curry"})),
+        field("Cuisine", textInput(d.cuisine, v => d.cuisine = v, {placeholder:"Nepali"}))),
+      el("div", {class:"grid3"},
+        field("Servings", textInput(d.servings, v => d.servings = parseFloat(v) || 1, {type:"number", min:"1"})),
+        field("Prep (min)", textInput(d.prepMin, v => d.prepMin = parseFloat(v) || 0, {type:"number"})),
+        field("Cook (min)", textInput(d.cookMin, v => d.cookMin = parseFloat(v) || 0, {type:"number"}))),
+      el("div", null,
+        el("div", {class:"eyebrow", style:"margin-bottom:6px"}, "Ingredients — name, quantity, unit, waste %"),
+        el("div", {class:"lines"}, d.lines.map(lineRow)),
+        el("div", {style:"margin-top:8px"},
+          btn("Add a line", {cls:"sm", icon:"plus", onClick:() => { d.lines.push(blankLine()); rerender(); }}),
+          el("span", {class:"hint", style:"margin-left:10px"},
+            "Names that match one of your ingredients are costed automatically."))),
+      field("Method — one step per line", el("textarea", {style:"min-height:150px", oninput:e => d.steps = e.target.value.split("\n").map(s => s.trim()).filter(Boolean)}, (d.steps || []).join("\n"))),
+      el("div", {class:"grid2"},
+        field("Tags", textInput((d.tags || []).join(", "), v => d.tags = v.split(",").map(x => x.trim()).filter(Boolean), {placeholder:"weeknight, freezer"})),
+        field("Source link", textInput(d.sourceUrl, v => d.sourceUrl = v))),
+      field("Notes", el("textarea", {oninput:e => d.notes = e.target.value}, d.notes || ""))),
+    footer: () => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Save recipe", {cls:"primary", icon:"save", onClick:async () => {
+        if(!d.name.trim()) return toast("Give the recipe a name");
+        d.lines = d.lines.filter(l => (l.rawName || "").trim() || l.ingredientId);
+        const id = await Store.save("recipes", r ? r.id : null, d);
+        closeModal(); toast("Saved");
+        if(!r) go("recipes/" + id);
+      }}))
+  });
+}
+
+function openBusinessEditor(r){
+  const b = Object.assign({targetFoodCostPct:"", sellingPrice:"", labourMin:""}, r.business || {});
+  openModal({
+    title:"Price and labour",
+    body: () => frag(
+      field("Selling price per serving", textInput(b.sellingPrice, v => b.sellingPrice = v, {type:"number", step:"any", id:"b-sell"})),
+      field("Target food cost % for this dish", textInput(b.targetFoodCostPct, v => b.targetFoodCostPct = v, {type:"number"}),
+        "Leave empty to use your default of " + (S.settings.targetFoodCostPct || 0) + "%."),
+      field("Hands-on minutes", textInput(b.labourMin, v => b.labourMin = v, {type:"number"}),
+        "Costed at " + money(S.settings.labourPerHour) + " an hour, from Settings.")),
+    footer: () => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Save", {cls:"primary", icon:"save", onClick:async () => {
+        await Store.save("recipes", r.id, Object.assign({}, r, {business:b}));
+        closeModal();
+      }}))
+  });
+}
+
+function openLinkLine(recipe, line){
+  const guess = matchIngredient(line.rawName);
+  let choice = line.ingredientId || (guess ? guess.id : "");
+  openModal({
+    title:"Link “" + (line.rawName || "line") + "”",
+    body: () => frag(
+      el("p", {style:"margin:0"}, "Point this line at one of your ingredients so it can be costed."),
+      field("Ingredient", selectInput(choice,
+        [{value:"", label:"Choose one"}].concat(S.ingredients.map(i => ({value:i.id, label:i.name}))),
+        v => choice = v)),
+      el("div", {class:"hint"}, "Not there yet? Add it under Ingredients first, then come back.")),
+    footer: () => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Link it", {cls:"primary", icon:"check", onClick:async () => {
+        if(!choice) return toast("Pick an ingredient");
+        const lines = (recipe.lines || []).map(l => l === line || (l.rawName === line.rawName && l.qty === line.qty)
+          ? Object.assign({}, l, {ingredientId:choice}) : l);
+        await Store.save("recipes", recipe.id, Object.assign({}, recipe, {lines:lines}));
+        closeModal();
+      }}))
+  });
+}
+
+function openExtraItem(){
+  const d = {ingredientId:S.ingredients[0] ? S.ingredients[0].id : "", qty:1, unit:"kg"};
+  openModal({
+    title:"Add to the list",
+    body: () => frag(
+      field("Ingredient", selectInput(d.ingredientId, S.ingredients.map(i => ({value:i.id, label:i.name})), v => d.ingredientId = v)),
+      el("div", {class:"grid2"},
+        field("How much", textInput(d.qty, v => d.qty = parseFloat(v) || 0, {type:"number", step:"any"})),
+        field("Unit", selectInput(d.unit, unitOptions(), v => d.unit = v)))),
+    footer: () => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Add", {cls:"primary", icon:"plus", onClick:async () => {
+        S.shopping.extras = (S.shopping.extras || []).concat([d]);
+        await saveShopping(); closeModal(); render();
+      }}))
+  });
+}
+
+/* ======================= scan a bill ======================= */
+const BILL_PROMPT =
+  "You are reading a supplier bill, invoice or till receipt for a cook who records what they pay for ingredients.\n" +
+  "List every purchased food or kitchen item. For each item give:\n" +
+  "- description: the line as printed\n" +
+  "- name: a short plain ingredient name, such as \"Plain flour\", \"Chicken thigh\" or \"Eggs\"\n" +
+  "- packQty and packUnit: the size of ONE unit as sold. A 25 kg sack is 25 kg; a tray of 30 eggs is 30 each; " +
+  "loose produce sold by weight is the weight bought, such as 2.35 kg\n" +
+  "- packPrice: the price of ONE such unit. If a line reads 3 x 4.50 = 13.50, packPrice is 4.50 and packsBought is 3\n" +
+  "- packsBought, and sku when a product code is printed\n" +
+  "packUnit must be one of: " + UNIT_KEYS.join(", ") + ".\n" +
+  "Leave out totals, subtotals, tax, discounts, deposits, bags and delivery charges. " +
+  "Never guess a number that is not printed; leave the item out instead.\n" +
+  "Also give the supplier name and the bill date as YYYY-MM-DD when printed.\n" +
+  'Reply with only JSON: {"supplier":string,"date":string,"items":[{"description":string,"name":string,' +
+  '"packQty":number,"packUnit":string,"packPrice":number,"packsBought":number,"sku":string}]}';
+
+const BILL_SCHEMA = {
+  type:"object", additionalProperties:false, required:["items"],
+  properties:{
+    supplier:{type:"string"}, date:{type:"string"},
+    items:{type:"array", items:{
+      type:"object", additionalProperties:false,
+      required:["description","name","packQty","packUnit","packPrice"],
+      properties:{
+        description:{type:"string"}, name:{type:"string"},
+        packQty:{type:"number"}, packUnit:{type:"string", enum:UNIT_KEYS},
+        packPrice:{type:"number"}, packsBought:{type:"number"}, sku:{type:"string"}
+      }}}
+  }
+};
+
+function openBillScan(supplierId){
+  let supId = supplierId || (S.suppliers[0] && S.suppliers[0].id) || "";
+  let file = null, preview = null, text = "", phase = "input", rows = [];
+  let billDate = todayISO(), errText = null, ctl = null;
+  const byName = (a, b) => (a.name || "").localeCompare(b.name || "");
+
+  const read = async () => {
+    if(!file && !text.trim()) return toast("Add a photo or paste the bill first");
+    phase = "reading"; errText = null; ctl = new AbortController(); renderModal();
+    const prompt = BILL_PROMPT + (text.trim() ? "\n\nBILL TEXT:\n" + text.slice(0, 12000) : "\n\nThe bill is in the attached photo.");
+    try {
+      const opts = {signal:ctl.signal, schema:BILL_SCHEMA, cache:false};
+      if(file && !text.trim()) opts.images = file;
+      const out = await sampleFn.json(prompt, opts);
+      if(out && /^\d{4}-\d{2}-\d{2}$/.test(out.date || "") && out.date <= todayISO()) billDate = out.date;
+      rows = ((out && out.items) || []).filter(x => x && num(x.packQty) > 0 && num(x.packPrice) >= 0).map(x => {
+        const hit = matchIngredient(x.name || "") || matchIngredient(x.description || "");
+        return {
+          description: String(x.description || x.name || "").trim(),
+          name: String(x.name || x.description || "").trim(),
+          packQty: num(x.packQty), packUnit: UNITS[x.packUnit] ? x.packUnit : "each",
+          packPrice: num(x.packPrice), sku: String(x.sku || "").trim(),
+          target: hit ? hit.id : "new"
+        };
+      });
+      if(rows.length) phase = "review";
+      else { phase = "input"; errText = "No items could be read from that. Try a flatter, brighter photo, or paste the text."; }
+    } catch(e){ phase = "input"; if(!e || e.code !== "cancelled") errText = sampleErrorText(e); }
+    renderModal();
+  };
+
+  const save = async () => {
+    if(!S.ix.sup[supId]) return toast("Pick a supplier");
+    let created = 0, updated = 0, older = 0, newIng = 0;
+    const made = {};
+    for(const r of rows){
+      if(r.target === "skip" || !(num(r.packQty) > 0) || !(num(r.packPrice) >= 0)) continue;
+      let ingId = r.target;
+      if(ingId === "new"){
+        const key = (r.name || r.description).toLowerCase();
+        if(made[key]) ingId = made[key];
+        else {
+          const fam = UNITS[r.packUnit] ? UNITS[r.packUnit].fam : "mass";
+          ingId = await Store.save("ingredients", null, {
+            name: r.name || r.description, category:"", aliases:[], tags:[],
+            baseUnit: {mass:"g", vol:"ml", count:"each"}[fam]
+          });
+          made[key] = ingId; newIng++;
+        }
+      }
+      const quote = {packQty:num(r.packQty), packUnit:r.packUnit, packPrice:num(r.packPrice)};
+      const existing = S.prices.find(p => p.supplierId === supId && p.ingredientId === ingId) || null;
+      /* An older bill than the price on file is history, not the current price. */
+      if(existing && existing.date && billDate < existing.date){
+        const h = (existing.history || []).concat([Object.assign({date:billDate}, quote)])
+          .sort((a, b) => (a.date < b.date) - (a.date > b.date)).slice(0, 24);
+        await Store.save("prices", existing.id, Object.assign({}, existing, {history:h}));
+        older++; continue;
+      }
+      const samePack = existing && num(existing.packQty) === quote.packQty && existing.packUnit === quote.packUnit;
+      await savePrice(existing, Object.assign({notes:""}, existing || {}, quote, {
+        supplierId:supId, ingredientId:ingId, date:billDate,
+        packLabel: samePack ? (existing.packLabel || "") : "",
+        sku: r.sku || (existing && existing.sku) || ""
+      }));
+      if(existing) updated++; else created++;
+    }
+    if(preview) URL.revokeObjectURL(preview);
+    closeModal();
+    toast(["Saved " + (created + updated) + " " + pluralise(created + updated, "price"),
+      newIng ? newIng + " new " + pluralise(newIng, "ingredient") : null,
+      older ? older + " older " + pluralise(older, "quote") + " kept as history" : null].filter(Boolean).join(" · "));
+  };
+
+  const reviewCard = r => {
+    const ing = S.ix.ing[r.target];
+    const existing = ing ? S.prices.find(p => p.supplierId === supId && p.ingredientId === ing.id) : null;
+    let delta = null;
+    if(existing){
+      const a = unitCostOf(existing, ing), b = unitCostOf(r, ing);
+      if(a.ok && b.ok && a.value > 0) delta = (b.value - a.value) / a.value * 100;
+    }
+    return el("div", {class:"panel", style:"padding:12px" + (r.target === "skip" ? ";opacity:.55" : "")},
+      el("div", {class:"name"}, r.description),
+      el("div", {class:"row", style:"margin-top:8px;align-items:flex-end"},
+        field("Pack", el("input", {type:"number", step:"any", value:String(r.packQty), style:"width:84px",
+          oninput:e => r.packQty = parseFloat(e.target.value)})),
+        field("Unit", selectInput(r.packUnit, unitOptions(), v => r.packUnit = v)),
+        field("Price", el("input", {type:"number", step:"any", value:String(r.packPrice), style:"width:96px",
+          oninput:e => r.packPrice = parseFloat(e.target.value)}))),
+      el("div", {style:"margin-top:8px"}, field("Save as", selectInput(r.target,
+        [{value:"new", label:"New ingredient: " + (r.name || r.description)}, {value:"skip", label:"Don't save this line"}]
+          .concat(S.ingredients.slice().sort(byName).map(i => ({value:i.id, label:i.name}))),
+        v => { r.target = v; renderModal(); }))),
+      existing ? el("div", {class:"sub2", style:"margin-top:6px"},
+        "On file: " + money(existing.packPrice) + " for " + qtyText(num(existing.packQty)) + " " + unitLabel(existing.packUnit) + "  ",
+        trendPill(delta)) : null);
+  };
+
+  openModal({
+    wide:true, title:"Scan a bill", noAutofocus:true,
+    body: () => {
+      if(phase === "reading") return thinkingBlock("Reading the bill…", () => ctl && ctl.abort());
+      if(phase === "review"){
+        const keep = rows.filter(r => r.target !== "skip").length;
+        return frag(
+          el("div", {class:"grid2"},
+            field("Bill date", textInput(billDate, v => billDate = v, {type:"date"})),
+            el("div", {class:"hint", style:"align-self:end"},
+              keep + " of " + rows.length + " lines will be saved to " + ((S.ix.sup[supId] || {}).name || "the supplier") +
+              ". Check each pack size and price against the bill.")),
+          el("div", {class:"stack", style:"gap:10px"}, rows.map(reviewCard)));
+      }
+      return frag(
+        errText ? el("div", {class:"banner"}, errText) : null,
+        field("Supplier", selectInput(supId, S.suppliers.slice().sort(byName).map(s => ({value:s.id, label:s.name})), v => supId = v)),
+        S.imagesOk ? field("Photo of the bill",
+          el("input", {type:"file", accept:"image/*", capture:"environment", onchange:e => {
+            file = (e.target.files && e.target.files[0]) || null;
+            if(preview) URL.revokeObjectURL(preview);
+            preview = file ? URL.createObjectURL(file) : null;
+            renderModal();
+          }}),
+          file ? "Using " + file.name : "Flat, well lit, the whole bill in the frame.") : null,
+        preview ? el("img", {src:preview, alt:"The bill", style:"max-height:220px;max-width:100%;align-self:flex-start;border:1px solid var(--line);border-radius:6px;object-fit:contain"}) : null,
+        field(S.imagesOk ? "Or paste the bill's text" : "Paste the bill's text",
+          el("textarea", {style:"min-height:110px", placeholder:"Plain flour 25kg   1 x 22.50", oninput:e => text = e.target.value}, text)),
+        el("div", {class:"hint"}, "Claude reads each line into a pack size and a price. Nothing is saved until you have checked every row."));
+    },
+    footer: () => phase === "review"
+      ? frag(btn("Back", {cls:"ghost", onClick:() => { phase = "input"; renderModal(); }}),
+             btn("Save prices", {cls:"primary", icon:"save", onClick:save}))
+      : frag(btn("Cancel", {cls:"ghost", onClick:() => { if(preview) URL.revokeObjectURL(preview); closeModal(); }}),
+             btn("Read the bill", {cls:"primary", icon:"spark", disabled:phase === "reading", onClick:read}))
+  });
+}
+
+/* ======================= I cooked this ======================= */
+function openCooked(r){
+  const scale = num(S.ui.scale) > 0 ? num(S.ui.scale) : 1;
+  const n = recipeNeeds(r, scale);
+  const rows = Object.keys(n.need).map(id => ({ing:S.ix.ing[id], use:n.need[id], have:stockOf(id)}))
+    .sort((a, b) => a.ing.name.localeCompare(b.ing.name));
+  const tracked = rows.filter(x => x.have > 0);
+  openModal({
+    title:"Take it out of stock?",
+    body: () => frag(
+      el("p", {style:"margin:0"}, "Cooking " + (scale !== 1 ? qtyText(scale) + "× " : "") + (r.name || "this") + " uses:"),
+      el("div", null, rows.map(x => el("div", {class:"kv"},
+        el("span", null, x.ing.name),
+        el("span", null, el("b", {class:"mono"}, prettyBase(x.use, x.ing.baseUnit)),
+          el("span", {class:"sub2"}, x.have > 0
+            ? "  → " + prettyBase(Math.max(0, x.have - x.use), x.ing.baseUnit) + " left"
+            : "  not counted"))))),
+      n.unknown ? el("div", {class:"hint"}, n.unknown + " " + pluralise(n.unknown, "line") +
+        " can't be counted, because it isn't linked or can't be converted.") : null,
+      !tracked.length ? el("div", {class:"hint"}, "None of these have stock recorded, so nothing will change.") : null),
+    footer: () => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Take it out", {cls:"primary", icon:"check", disabled:!tracked.length, onClick:async () => {
+        for(const x of tracked)
+          await saveIngredient(Object.assign({}, x.ing, {stock:Math.max(0, x.have - x.use), stockAt:todayISO()}));
+        closeModal(); toast("Stock updated");
+      }}))
+  });
+}
+
+/* ======================= asking Claude ======================= */
+S.shopping = {recipes:{}, extras:[]};
+let sampleFn = null;
+
+/* ---- talking to Claude ----------------------------------------------
+   Outside claude.ai there is no sample capability, so this calls the
+   Anthropic API with the key you enter in Settings. The key is kept in
+   this browser only and is sent to api.anthropic.com and nowhere else.
+   The shim below keeps the same shape the rest of the app already calls:
+   sampleFn(prompt, opts) -> {text}   and   sampleFn.json(prompt, opts). */
+const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.124.0/+esm";
+const KEY_STORE = LS + "apikey";
+const MODEL = "claude-opus-5";
+
+const AI = {
+  _client:null, _forKey:null,
+  key(){ try { return localStorage.getItem(KEY_STORE) || ""; } catch(e){ return ""; } },
+  setKey(v){
+    try { v ? localStorage.setItem(KEY_STORE, v.trim()) : localStorage.removeItem(KEY_STORE); } catch(e){}
+    this._client = null;
+    S.sampleReady = S.imagesOk = !!this.key();
+    render();
+  },
+  async client(){
+    const key = this.key();
+    if(!key) throw {code:"no_key"};
+    if(this._client && this._forKey === key) return this._client;
+    let Anthropic;
+    try { Anthropic = (await import(SDK_URL)).default; }
+    catch(e){ throw {code:"sdk_unavailable"}; }
+    this._client = new Anthropic({apiKey:key, dangerouslyAllowBrowser:true});
+    this._forKey = key;
+    return this._client;
+  }
+};
+
+/* Map whatever the SDK throws onto the codes this app already handles. */
+function toAppError(e, partial){
+  if(e && e.code && !e.status) return e;
+  const name = e && e.constructor ? e.constructor.name : "";
+  const status = e && e.status;
+  let code = "upstream_error";
+  if(e && e.name === "AbortError") code = "cancelled";
+  else if(status === 401 || status === 403 || name === "AuthenticationError" || name === "PermissionDeniedError") code = "auth";
+  else if(status === 429 || name === "RateLimitError") code = "rate_limited";
+  else if(status === 400 || name === "BadRequestError") code = "invalid_request";
+  else if(name === "APIConnectionError" || name === "APIConnectionTimeoutError") code = "offline";
+  return {code:code, message:(e && e.message) || "", text:partial};
+}
+
+function requestBody(prompt, opts){
+  const o = opts || {};
+  const body = {
+    model: MODEL,
+    max_tokens: 8000,
+    thinking: {type:"adaptive"},
+    messages: [{role:"user", content:prompt}],
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default"
+  };
+  if(o.schema) body.output_config = {format:{type:"json_schema", schema:o.schema}};
+  return body;
+}
+function textOf(message){
+  return (message.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
+}
+
+/* Phone photos run to several megabytes. Shrink to 1600px JPEG before sending:
+   plenty for reading a bill, and well inside the API's image limits. */
+async function shrinkImage(file, maxSide){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = url; });
+    const k = Math.min(1, (maxSide || 1600) / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise(ok => c.toBlob(ok, "image/jpeg", 0.85));
+  } finally { URL.revokeObjectURL(url); }
+}
+async function blobToBase64(blob){
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let s = "";
+  for(let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+async function imageBlocks(images){
+  const list = Array.isArray(images) ? images : [images];
+  const out = [];
+  for(const f of list){
+    if(!f) continue;
+    let small;
+    try { small = await shrinkImage(f, 1600); } catch(e){ throw {code:"image_rejected"}; }
+    out.push({type:"image", source:{type:"base64", media_type:"image/jpeg", data: await blobToBase64(small)}});
+  }
+  return out;
+}
+
+async function callClaude(prompt, opts){
+  const o = opts || {};
+  const client = await AI.client();
+  const body = requestBody(prompt, o);
+  if(o.images){
+    const imgs = await imageBlocks(o.images);
+    if(imgs.length) body.messages = [{role:"user", content: imgs.concat([{type:"text", text:prompt}])}];
+  }
+  let partial = "";
+  try {
+    if(o.onText && client.beta && client.beta.messages && client.beta.messages.stream){
+      const stream = client.beta.messages.stream(body, {signal:o.signal});
+      for await (const ev of stream){
+        if(ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta"){
+          partial += ev.delta.text;
+          o.onText({text:partial, delta:ev.delta.text});
+        }
+      }
+      const done = await stream.finalMessage();
+      if(done.stop_reason === "refusal") throw {code:"refused"};
+      return textOf(done) || partial;
+    }
+    const msg = await client.beta.messages.create(body, {signal:o.signal});
+    if(msg.stop_reason === "refusal") throw {code:"refused"};
+    const text = textOf(msg);
+    if(!text) throw {code:"empty_completion"};
+    if(o.onText) o.onText({text:text, delta:text});
+    return text;
+  } catch(e){
+    throw toAppError(e, partial || undefined);
+  }
+}
+
+/* Tolerant JSON reader: whole reply, else one fenced block, else the span
+   from the first bracket to the last. */
+function readJson(text){
+  const tries = [];
+  tries.push(text);
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if(fence) tries.push(fence[1]);
+  const first = text.search(/[[{]/);
+  const last = Math.max(text.lastIndexOf("]"), text.lastIndexOf("}"));
+  if(first >= 0 && last > first) tries.push(text.slice(first, last+1));
+  for(const t of tries){ try { return JSON.parse(t.trim()); } catch(e){} }
+  throw {code:"invalid_json", text:text};
+}
+
+function makeSampleFn(){
+  const fn = async function(prompt, opts){
+    const text = await callClaude(prompt, opts);
+    return {text:text, truncated:false};
+  };
+  fn.json = async function(prompt, opts){
+    const text = await callClaude(prompt, opts);
+    return readJson(text);
+  };
+  return fn;
+}
+
+async function initSample(){
+  sampleFn = makeSampleFn();
+  S.sampleReady = S.imagesOk = !!AI.key();
+  render();
+}
+
+function sampleErrorText(e){
+  const map = {
+    no_key:"Add your Anthropic API key under Settings first.",
+    auth:"That API key was refused. Check it under Settings.",
+    sdk_unavailable:"Could not load the Claude library — you may be offline. Everything else still works.",
+    offline:"No connection to Claude. The rest of the app works offline.",
+    rate_limited:"That is a lot of asking at once. Give it a minute.",
+    refused:"Claude would not answer that one. Try rewording it.",
+    invalid_json:"The answer came back in the wrong shape. Try again.",
+    invalid_request:"Claude refused the request as malformed. Try asking for less.",
+    empty_completion:"Nothing came back. Ask for less.",
+    image_rejected:"That photo could not be read. Try a JPEG or PNG taken with the camera.",
+    cancelled:"Stopped."
+  };
+  return (e && map[e.code]) || "Claude could not answer just now.";
+}
+function tasteLine(){
+  const t = S.settings.taste || {};
+  const bits = [];
+  if(t.cuisines) bits.push("cuisines they like: " + t.cuisines);
+  if(t.diet) bits.push("diet: " + t.diet);
+  if(t.dislikes) bits.push("avoid: " + t.dislikes);
+  if(t.notes) bits.push("also: " + t.notes);
+  return bits.length ? bits.join("; ") : "no strong preferences recorded";
+}
+function pantryLine(){
+  const names = S.ingredients.map(i => i.name).slice(0, 90);
+  return names.length ? names.join(", ") : "nothing recorded yet";
+}
+const RECIPE_SHAPE =
+  'Reply with ONLY a JSON object of this shape:\n' +
+  '{"name":string,"cuisine":string,"servings":number,"prepMin":number,"cookMin":number,' +
+  '"tags":[string],"ingredients":[string],"steps":[string],"notes":string}\n' +
+  'Every entry in "ingredients" must read "<quantity> <unit> <name>", for example "250 g plain flour" or "2 each onion". ' +
+  'Use metric units (g, ml, tsp, tbsp, each). Prefer ingredient names from the list above when they fit.';
+
+/* Schemas constrain the reply so a recipe cannot come back malformed. */
+const RECIPE_SCHEMA = {
+  type:"object", additionalProperties:false,
+  required:["name","cuisine","servings","ingredients","steps"],
+  properties:{
+    name:{type:"string"}, cuisine:{type:"string"},
+    servings:{type:"number"}, prepMin:{type:"number"}, cookMin:{type:"number"},
+    tags:{type:"array", items:{type:"string"}},
+    ingredients:{type:"array", items:{type:"string"}},
+    steps:{type:"array", items:{type:"string"}},
+    notes:{type:"string"}
+  }
+};
+const IDEAS_SCHEMA = {
+  type:"object", additionalProperties:false, required:["ideas"],
+  properties:{ ideas:{ type:"array", items:{
+    type:"object", additionalProperties:false,
+    required:["title","summary","ingredients"],
+    properties:{
+      title:{type:"string"}, cuisine:{type:"string"}, summary:{type:"string"},
+      ingredients:{type:"array", items:{type:"string"}}, whyItFits:{type:"string"}
+    }}}}
+};
+
+function aiPreview(recipe, onSave){
+  const lines = linesFromStrings(recipe.ingredients);
+  const linked = lines.filter(l => l.ingredientId).length;
+  return frag(
+    el("h3", {style:"font-size:20px"}, recipe.name || "Untitled"),
+    el("div", {class:"sub2"}, [recipe.cuisine, (recipe.servings || "?") + " servings",
+      recipe.prepMin ? recipe.prepMin + " min prep" : null, recipe.cookMin ? recipe.cookMin + " min cook" : null].filter(Boolean).join("  ·  ")),
+    el("div", {class:"pill " + (linked === lines.length ? "good" : "warn"), style:"align-self:flex-start"},
+      linked + " of " + lines.length + " ingredients match your list"),
+    el("div", {class:"wrap"}, el("table", {class:"sheet"},
+      el("thead", null, el("tr", null, el("th", null, "Ingredient"), el("th", {class:"num"}, "Qty"), el("th", null, "Costed"))),
+      el("tbody", null, lines.map(l =>
+        el("tr", null,
+          el("td", null, l.rawName),
+          el("td", {class:"num"}, qtyText(l.qty) + " " + unitLabel(l.unit)),
+          el("td", {class:"thin"}, l.ingredientId
+            ? el("span", {class:"pill good"}, S.ix.ing[l.ingredientId].name)
+            : el("span", {class:"pill flat"}, "link it later"))))))),
+    (recipe.steps || []).length ? el("ol", {class:"steps"}, recipe.steps.map(s => el("li", null, el("div", null, s)))) : null,
+    recipe.notes ? el("div", {class:"hint"}, recipe.notes) : null);
+}
+
+async function aiRecipeToStore(recipe, source){
+  const id = await Store.save("recipes", null, {
+    name: recipe.name || "Untitled",
+    cuisine: recipe.cuisine || "",
+    tags: (recipe.tags || []).concat(source === "ai" ? ["written by Claude"] : ["imported"]),
+    servings: num(recipe.servings) || 4,
+    lines: linesFromStrings(recipe.ingredients),
+    steps: recipe.steps || [],
+    prepMin: num(recipe.prepMin) || 0,
+    cookMin: num(recipe.cookMin) || 0,
+    source: source, sourceUrl:"",
+    notes: recipe.notes || "",
+    business:{}, favorite:false, createdAt:new Date().toISOString()
+  });
+  closeModal();
+  toast("Saved to your recipes");
+  go("recipes/" + id);
+}
+
+function thinkingBlock(label, onStop){
+  return el("div", {class:"row", style:"align-items:center"},
+    el("span", {class:"thinking"}, el("i"), el("i"), el("i"), label || "Thinking…"),
+    onStop ? btn("Stop", {cls:"ghost sm", icon:"stop", onClick:onStop}) : null);
+}
+
+function openWriteRecipe(){
+  const form = {have:"", cuisine:(S.settings.taste || {}).cuisines || "", servings:4, constraints:""};
+  let phase = "form", result = null, errText = null, ctl = null;
+  const run = async () => {
+    phase = "thinking"; errText = null; ctl = new AbortController(); renderModal();
+    const prompt =
+      "You are helping a home cook who keeps a costed recipe book.\n" +
+      "Ingredients they already buy: " + pantryLine() + ".\n" +
+      "Their preferences: " + tasteLine() + ".\n" +
+      "Write one original recipe" +
+      (form.have ? " using mainly: " + form.have : "") +
+      (form.cuisine ? ", in the style of " + form.cuisine : "") +
+      ", for " + (num(form.servings) || 4) + " servings" +
+      (form.constraints ? ". Constraints: " + form.constraints : "") + ".\n" + RECIPE_SHAPE;
+    try {
+      result = await sampleFn.json(prompt, {signal:ctl.signal, schema:RECIPE_SCHEMA});
+      phase = "result";
+    } catch(e){
+      if(e && e.code === "cancelled"){ phase = "form"; }
+      else { phase = "form"; errText = sampleErrorText(e); }
+    }
+    renderModal();
+  };
+  openModal({
+    wide:true, title:"Write me a recipe",
+    body: () => {
+      if(phase === "thinking") return thinkingBlock("Writing a recipe…", () => ctl && ctl.abort());
+      if(phase === "result" && result) return aiPreview(result);
+      return frag(
+        errText ? el("div", {class:"banner"}, errText) : null,
+        field("What do you want to use up?", textInput(form.have, v => form.have = v, {id:"ai-have", placeholder:"chicken thigh, tomatoes, rice"})),
+        el("div", {class:"grid2"},
+          field("Style", textInput(form.cuisine, v => form.cuisine = v, {placeholder:"Nepali"})),
+          field("Servings", textInput(form.servings, v => form.servings = v, {type:"number", min:"1"}))),
+        field("Anything to work around?", textInput(form.constraints, v => form.constraints = v, {placeholder:"no oven, under 30 minutes"})),
+        el("div", {class:"hint"}, "It writes with your ingredient names where it can, so the result costs itself straight away."));
+    },
+    footer: () => phase === "result"
+      ? frag(btn("Try again", {cls:"ghost", onClick:run}), btn("Save recipe", {cls:"primary", icon:"save", onClick:() => aiRecipeToStore(result, "ai")}))
+      : frag(btn("Cancel", {cls:"ghost", onClick:closeModal}), btn("Write it", {cls:"primary", icon:"spark", disabled:phase === "thinking", onClick:run}))
+  });
+}
+
+function openImportRecipe(){
+  let text = "", phase = "form", result = null, errText = null, ctl = null;
+  const run = async () => {
+    if(!text.trim()) return toast("Paste a recipe first");
+    phase = "thinking"; errText = null; ctl = new AbortController(); renderModal();
+    const prompt =
+      "Turn the recipe below into structured data. Keep the quantities exactly as written; do not invent steps.\n" +
+      "Ingredient names already in their book: " + pantryLine() + ".\n" + RECIPE_SHAPE + "\n\nRECIPE:\n" + text.slice(0, 12000);
+    try { result = await sampleFn.json(prompt, {signal:ctl.signal, schema:RECIPE_SCHEMA}); phase = "result"; }
+    catch(e){ phase = "form"; if(!e || e.code !== "cancelled") errText = sampleErrorText(e); }
+    renderModal();
+  };
+  openModal({
+    wide:true, title:"Paste a recipe",
+    body: () => {
+      if(phase === "thinking") return thinkingBlock("Reading it…", () => ctl && ctl.abort());
+      if(phase === "result" && result) return aiPreview(result);
+      return frag(
+        errText ? el("div", {class:"banner"}, errText) : null,
+        field("Paste the recipe text", el("textarea", {id:"imp-text", style:"min-height:220px", placeholder:"Ingredients…\n\nMethod…", oninput:e => text = e.target.value}, text)),
+        el("div", {class:"hint"}, "Copy from a page, a photo transcription, or a message — it gets tidied into your format."));
+    },
+    footer: () => phase === "result"
+      ? frag(btn("Try again", {cls:"ghost", onClick:run}), btn("Save recipe", {cls:"primary", icon:"save", onClick:() => aiRecipeToStore(result, "import")}))
+      : frag(btn("Cancel", {cls:"ghost", onClick:closeModal}), btn("Tidy it up", {cls:"primary", icon:"spark", disabled:phase === "thinking", onClick:run}))
+  });
+}
+
+function openIdeaSearch(){
+  let brief = "", phase = "form", items = null, errText = null, ctl = null;
+  const run = async () => {
+    phase = "thinking"; errText = null; ctl = new AbortController(); renderModal();
+    const have = S.recipes.map(r => r.name).slice(0, 40).join("; ");
+    const prompt =
+      "Suggest 5 recipe ideas for a home cook.\n" +
+      "Their preferences: " + tasteLine() + ".\n" +
+      "Ingredients they keep: " + pantryLine() + ".\n" +
+      (have ? "Recipes they already have (do not repeat these): " + have + ".\n" : "") +
+      (brief ? "Tonight they asked for: " + brief + ".\n" : "") +
+      "You cannot browse the web, so do not invent links, sources or publication names.\n" +
+      'Reply with a JSON object {"ideas": [ ... ]} holding 5 objects: {"title":string,"cuisine":string,"summary":string,' +
+      '"ingredients":[string],"whyItFits":string}. Keep "summary" to one sentence and "ingredients" to the main 5-8 items.';
+    try {
+      const out = await sampleFn.json(prompt, {signal:ctl.signal, schema:IDEAS_SCHEMA});
+      items = Array.isArray(out) ? out : (out && out.ideas) || [];
+      phase = "result";
+    } catch(e){ phase = "form"; if(!e || e.code !== "cancelled") errText = sampleErrorText(e); }
+    renderModal();
+  };
+  const keep = async () => {
+    const day = feedFor(todayISO());
+    const merged = ((day && day.items) || []).concat(items.map(i => Object.assign({}, i, {url:"", site:"written by Claude"})));
+    await Store.save("feed", todayISO(), {items:merged, source:"written by Claude", updatedAt:new Date().toISOString()});
+    closeModal(); toast("Added to Today"); go("today");
+  };
+  openModal({
+    wide:true, title:"Ideas for today",
+    body: () => {
+      if(phase === "thinking") return thinkingBlock("Thinking up dishes…", () => ctl && ctl.abort());
+      if(phase === "result" && items) return el("div", null, items.map(i =>
+        el("article", {class:"feeditem"}, el("div", {class:"fbody"},
+          el("h3", null, i.title),
+          el("div", {class:"sub2"}, i.cuisine || ""),
+          el("div", null, i.summary || ""),
+          el("div", {class:"tags"}, (i.ingredients || []).map(t => el("span", {class:"tag"}, t))),
+          i.whyItFits ? el("div", {class:"hint"}, i.whyItFits) : null))));
+      return frag(
+        errText ? el("div", {class:"banner"}, errText) : null,
+        field("Anything particular?", textInput(brief, v => brief = v, {id:"idea-brief", placeholder:"something quick with what is in the fridge"})),
+        el("div", {class:"hint"}, "These are written by Claude from your preferences — it cannot browse, so there are no source links. The daily search does that part."));
+    },
+    footer: () => phase === "result"
+      ? frag(btn("Try again", {cls:"ghost", onClick:run}), btn("Add to Today", {cls:"primary", icon:"check", onClick:keep}))
+      : frag(btn("Cancel", {cls:"ghost", onClick:closeModal}), btn("Give me ideas", {cls:"primary", icon:"spark", disabled:phase === "thinking", onClick:run}))
+  });
+}
+
+function openSubstitutes(recipe){
+  let out = "", phase = "run", errText = null, ctl = null;
+  const c = costRecipe(recipe, 1);
+  const run = async () => {
+    phase = "run"; out = ""; errText = null; ctl = new AbortController(); renderModal();
+    const lines = c.lines.map(l => "- " + ((l.ing && l.ing.name) || l.line.rawName) + ": " + qtyText(l.qty) + " " + unitLabel(l.line.unit) +
+      (l.cost != null ? " costing " + money(l.cost) : " (not costed)")).join("\n");
+    const shelf = S.ingredients.map(i => {
+      const b = bestPriceFor(i.id);
+      return "- " + i.name + (b ? " at " + perUnitText(b.unitCost, i.baseUnit) : " (no price)");
+    }).slice(0, 60).join("\n");
+    const prompt =
+      "A cook wants this dish cheaper without wrecking it.\n\nDISH: " + recipe.name +
+      " (" + qtyText(c.servings) + " servings, " + money(c.total) + " total, " + money(c.perServing) + " a serving)\n" +
+      "LINES:\n" + lines + "\n\nWHAT THEY ALREADY BUY AND PAY:\n" + shelf + "\n\n" +
+      "Name the two or three lines carrying the most cost, and for each give one realistic swap or trim, " +
+      "preferring ingredients from their own list, with a rough saving. Say plainly where a swap changes the dish. " +
+      "Under 200 words, short paragraphs, no headings.";
+    try { const r = await sampleFn(prompt, {signal:ctl.signal, onText:u => { out = u.text; renderModal(); }}); out = r.text; phase = "done"; }
+    catch(e){ out = (e && e.text) || out; phase = "done"; if(!e || e.code !== "cancelled") errText = sampleErrorText(e); }
+    renderModal();
+  };
+  openModal({
+    title:"Cheaper swaps", noAutofocus:true,
+    body: () => frag(
+      errText ? el("div", {class:"banner"}, errText) : null,
+      out ? el("div", {style:"white-space:pre-wrap;line-height:1.6"}, out) : thinkingBlock("Reading your prices…", () => ctl && ctl.abort())),
+    footer: () => frag(
+      phase === "run" ? btn("Stop", {cls:"ghost", icon:"stop", onClick:() => ctl && ctl.abort()}) : btn("Ask again", {cls:"ghost", onClick:run}),
+      btn("Close", {cls:"primary", onClick:closeModal}))
+  });
+  run();
+}
+
+/* ======================= import / export ======================= */
+async function offerFile(filename, text){
+  /* Inside the installed app there is no browser download; show the text to copy. */
+  if(!window.Capacitor) try {
+    const url = URL.createObjectURL(new Blob([text], {type:"application/octet-stream"}));
+    const a = el("a", {href:url, download:filename});
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast("Saved to your downloads");
+    return;
+  } catch(e){ /* fall through to copy */ }
+  openModal({
+    wide:true, title:"Copy your data",
+    body: () => frag(
+      el("div", {class:"hint"}, "Select all of this and paste it somewhere safe."),
+      el("textarea", {style:"min-height:300px;font-family:var(--mono);font-size:12px"}, text)),
+    footer: () => btn("Done", {cls:"primary", onClick:closeModal})
+  });
+}
+function exportAll(){
+  const dump = {
+    kitchenBook:1, exportedAt:new Date().toISOString(), settings:S.settings,
+    suppliers:S.suppliers, ingredients:S.ingredients, prices:S.prices, recipes:S.recipes, feed:S.feed
+  };
+  offerFile("kitchen-book-" + todayISO() + ".json", JSON.stringify(dump, null, 2));
+}
+function exportShopping(plan){
+  if(!plan) return;
+  const bySup = {};
+  plan.perItem.forEach(i => {
+    const key = i.best ? ((i.best.supplier && i.best.supplier.name) || "Unknown supplier") : "No price yet";
+    (bySup[key] = bySup[key] || []).push(
+      "  " + prettyBase(i.baseQty, (i.ing && i.ing.baseUnit) || "g") + "  " + ((i.ing && i.ing.name) || "") +
+      (i.cost != null ? "   " + money(i.cost) : ""));
+  });
+  const text = "SHOPPING LIST  " + todayISO() + "\n\n" +
+    Object.keys(bySup).map(k => k + "\n" + bySup[k].join("\n")).join("\n\n") +
+    "\n\nTotal at cheapest prices: " + money(plan.splitTotal) + "\n";
+  offerFile("shopping-" + todayISO() + ".txt", text);
+}
+function openImportData(){
+  let text = "";
+  openModal({
+    wide:true, title:"Restore from backup",
+    body: () => frag(
+      el("div", {class:"banner"}, "This adds everything in the file back into your book. Rows with the same id are overwritten."),
+      el("textarea", {id:"restore-box", style:"min-height:240px;font-family:var(--mono);font-size:12px", placeholder:"Paste the backup file contents here", oninput:e => text = e.target.value})),
+    footer: () => frag(
+      btn("Cancel", {cls:"ghost", onClick:closeModal}),
+      btn("Restore", {cls:"primary", icon:"save", onClick:async () => {
+        let data;
+        try { data = JSON.parse(text); } catch(e){ return toast("That is not valid backup data"); }
+        let n = 0;
+        for(const coll of ["suppliers","ingredients","prices","recipes","feed"]){
+          for(const row of (data[coll] || [])){ await Store.save(coll, row.id, row); n++; }
+        }
+        if(data.settings) await Store.save("settings", "app", Object.assign({}, DEFAULT_SETTINGS, data.settings));
+        closeModal(); toast("Restored " + n + " rows");
+      }}))
+  });
+}
+async function removeExamples(){
+  confirmDelete("all example rows", async () => {
+    for(const coll of ["prices","recipes","ingredients","suppliers"]){
+      for(const row of S[coll].filter(x => x.example)) await Store.remove(coll, row.id);
+    }
+    toast("Examples removed");
+  });
+}
+
+/* ======================= example data ======================= */
+function seedRows(){
+  const d = new Date(Date.now() - 18*86400000);
+  const when = todayISO(d);
+  const sup = [
+    ["ex-sup-metro", {name:"Metro Wholesale", contact:{phone:"555 0142", address:"Unit 7, Trade Park", website:""},
+      minOrder:80, deliveryFee:0, leadTimeDays:2, deliveryDays:["Tue","Fri"], notes:"Cash and carry. Bulk sizes only.", example:true}],
+    ["ex-sup-corner", {name:"Corner Grocer", contact:{phone:"555 0199", address:"12 High Street"},
+      minOrder:0, deliveryFee:0, leadTimeDays:0, deliveryDays:[], notes:"Round the corner, small packs, higher unit price.", example:true}],
+    ["ex-sup-farm", {name:"Hillside Farm", contact:{phone:"555 0177", email:"orders@example.com"},
+      minOrder:25, deliveryFee:4, leadTimeDays:3, deliveryDays:["Thu"], notes:"Eggs and vegetables, Thursday drop.", example:true}]
+  ];
+  const ing = [
+    ["ex-ing-flour",   {name:"Plain flour", category:"Dry goods", baseUnit:"g", densityGPerMl:0.53, example:true}],
+    ["ex-ing-sugar",   {name:"Caster sugar", category:"Dry goods", baseUnit:"g", densityGPerMl:0.85, example:true}],
+    ["ex-ing-butter",  {name:"Butter", category:"Dairy", baseUnit:"g", densityGPerMl:0.911, example:true}],
+    ["ex-ing-egg",     {name:"Eggs", category:"Dairy", baseUnit:"each", gramsPerEach:55, example:true}],
+    ["ex-ing-milk",    {name:"Milk", category:"Dairy", baseUnit:"ml", densityGPerMl:1.03, example:true}],
+    ["ex-ing-oil",     {name:"Sunflower oil", category:"Oils", baseUnit:"ml", densityGPerMl:0.92, example:true}],
+    ["ex-ing-chicken", {name:"Chicken thigh", category:"Meat", baseUnit:"g", example:true}],
+    ["ex-ing-onion",   {name:"Onion", category:"Vegetables", baseUnit:"g", gramsPerEach:150, example:true}],
+    ["ex-ing-rice",    {name:"Basmati rice", category:"Dry goods", baseUnit:"g", densityGPerMl:0.85, example:true}],
+    ["ex-ing-tomato",  {name:"Tomatoes", category:"Vegetables", baseUnit:"g", gramsPerEach:110, example:true}],
+    ["ex-ing-salt",    {name:"Salt", category:"Dry goods", baseUnit:"g", densityGPerMl:1.2, example:true}],
+    ["ex-ing-yeast",   {name:"Dried yeast", category:"Dry goods", baseUnit:"g", example:true}]
+  ];
+  const P = (id, s, i, q, u, price, label) => [id, {supplierId:s, ingredientId:i, packQty:q, packUnit:u, packPrice:price, packLabel:label || "", date:when, sku:"", notes:"", example:true}];
+  const prices = [
+    P("ex-p-1",  "ex-sup-metro",  "ex-ing-flour",   25, "kg", 22.50, "25 kg sack"),
+    P("ex-p-2",  "ex-sup-corner", "ex-ing-flour",   1.5,"kg", 2.40,  "1.5 kg bag"),
+    P("ex-p-3",  "ex-sup-metro",  "ex-ing-sugar",   10, "kg", 12.00, "10 kg sack"),
+    P("ex-p-4",  "ex-sup-corner", "ex-ing-sugar",   1,  "kg", 1.70),
+    P("ex-p-5",  "ex-sup-metro",  "ex-ing-butter",  5,  "kg", 38.00, "5 kg block"),
+    P("ex-p-6",  "ex-sup-corner", "ex-ing-butter",  250,"g",  2.60),
+    P("ex-p-7",  "ex-sup-farm",   "ex-ing-egg",     30, "each", 6.60, "tray of 30"),
+    P("ex-p-8",  "ex-sup-corner", "ex-ing-egg",     12, "each", 3.60, "box of 12"),
+    P("ex-p-9",  "ex-sup-metro",  "ex-ing-milk",    10, "l",  8.50),
+    P("ex-p-10", "ex-sup-corner", "ex-ing-milk",    2,  "l",  2.20),
+    P("ex-p-11", "ex-sup-metro",  "ex-ing-oil",     5,  "l",  9.50, "5 l drum"),
+    P("ex-p-12", "ex-sup-corner", "ex-ing-oil",     1,  "l",  2.60),
+    P("ex-p-13", "ex-sup-metro",  "ex-ing-chicken", 5,  "kg", 32.50),
+    P("ex-p-14", "ex-sup-farm",   "ex-ing-chicken", 2,  "kg", 16.00),
+    P("ex-p-15", "ex-sup-metro",  "ex-ing-onion",   10, "kg", 9.00, "10 kg net"),
+    P("ex-p-16", "ex-sup-farm",   "ex-ing-onion",   5,  "kg", 5.50),
+    P("ex-p-17", "ex-sup-metro",  "ex-ing-rice",    20, "kg", 34.00, "20 kg sack"),
+    P("ex-p-18", "ex-sup-corner", "ex-ing-rice",    1,  "kg", 2.40),
+    P("ex-p-19", "ex-sup-farm",   "ex-ing-tomato",  5,  "kg", 9.00),
+    P("ex-p-20", "ex-sup-corner", "ex-ing-tomato",  1,  "kg", 2.50),
+    P("ex-p-21", "ex-sup-corner", "ex-ing-salt",    1,  "kg", 0.90),
+    P("ex-p-22", "ex-sup-corner", "ex-ing-yeast",   100,"g",  2.20, "100 g tin")
+  ];
+  const L = (id, name, qty, unit, waste) => ({ingredientId:id, rawName:name, qty:qty, unit:unit, wastePct:waste || 0, note:""});
+  const recipes = [
+    ["ex-rec-loaf", {
+      name:"Everyday sandwich loaf", cuisine:"Baking", tags:["example","batch"], servings:12,
+      lines:[L("ex-ing-flour","Plain flour",500,"g"), L("ex-ing-yeast","Dried yeast",7,"g"),
+             L("ex-ing-salt","Salt",10,"g"), L("ex-ing-butter","Butter",25,"g"), L("ex-ing-milk","Milk",120,"ml")],
+      steps:["Warm the milk with 200 ml water and stir in the yeast.","Mix into the flour and salt, then work in the soft butter.",
+             "Knead 8 minutes, prove until doubled, knock back and shape.","Prove in a tin for 45 minutes and bake at 220C for 35 minutes."],
+      prepMin:25, cookMin:35, source:"own", sourceUrl:"", notes:"Twelve slices from one tin.",
+      business:{sellingPrice:"", targetFoodCostPct:""}, favorite:false, example:true, createdAt:new Date().toISOString()}],
+    ["ex-rec-tray", {
+      name:"Chicken and rice traybake", cuisine:"Weeknight", tags:["example","one pan"], servings:4,
+      lines:[L("ex-ing-chicken","Chicken thigh",600,"g",8), L("ex-ing-rice","Basmati rice",300,"g"),
+             L("ex-ing-onion","Onion",2,"each",12), L("ex-ing-tomato","Tomatoes",300,"g"),
+             L("ex-ing-oil","Sunflower oil",30,"ml"), L("ex-ing-salt","Salt",8,"g")],
+      steps:["Brown the chicken in the oil in a wide tin.","Add sliced onion and cook until soft, then the tomatoes.",
+             "Stir in the rice and 600 ml water, season, cover.","Bake 35 minutes at 190C and rest 10 minutes before serving."],
+      prepMin:15, cookMin:40, source:"own", sourceUrl:"", notes:"",
+      business:{sellingPrice:"", targetFoodCostPct:""}, favorite:false, example:true, createdAt:new Date().toISOString()}]
+  ];
+  return {suppliers:sup, ingredients:ing, prices:prices, recipes:recipes};
+}
+
+let seedChecked = false;
+async function maybeSeed(){
+  if(seedChecked) return;
+  seedChecked = true;
+  if(S.settings.seeded) return;
+  if(S.suppliers.length || S.ingredients.length || S.recipes.length){
+    await saveSettings({seeded:true});
+    return;
+  }
+  const rows = seedRows();
+  for(const coll of ["suppliers","ingredients","prices","recipes"]){
+    for(const pair of rows[coll]) await Store.save(coll, pair[0], pair[1]);
+  }
+  await saveSettings({seeded:true});
+  toast("Added a few examples to show how it works");
+}
+
+async function pruneFeed(){
+  const cutoff = todayISO(new Date(Date.now() - 45*86400000));
+  for(const f of S.feed){ if(f.id < cutoff) await Store.remove("feed", f.id); }
+}
+
+/* ======================= self test ======================= */
+function runSelfTest(){
+  const out = [];
+  let pass = 0, fail = 0;
+  const near = (a, b, tol) => isFinite(a) && Math.abs(a-b) <= (tol == null ? 0.0001 : tol);
+  const check = (name, cond, got) => {
+    if(cond){ pass++; out.push("  ok    " + name); }
+    else { fail++; out.push("  FAIL  " + name + (got !== undefined ? "   got: " + JSON.stringify(got) : "")); }
+  };
+
+  out.push("UNIT CONVERSION");
+  check("1 kg is 1000 g", near(convert(1,"kg","g").value, 1000), convert(1,"kg","g"));
+  check("2 cups is 473.176 ml", near(convert(2,"cup","ml").value, 473.1764730, 0.001));
+  check("1 lb is 453.592 g", near(convert(1,"lb","g").value, 453.59237, 0.001));
+  check("3 tbsp is 9 tsp", near(convert(3,"tbsp","tsp").value, 9, 0.0001));
+  check("milk 500 ml weighs 515 g at 1.03", near(convert(500,"ml","g",{densityGPerMl:1.03}).value, 515, 0.001));
+  check("3 eggs at 55 g is 165 g", near(convert(3,"each","g",{gramsPerEach:55}).value, 165));
+  check("2 cups of flour at 0.53 is 250.78 g", near(convert(2,"cup","g",{densityGPerMl:0.53}).value, 250.78, 0.01));
+  check("volume to weight refuses without density", convert(1,"cup","g",{}).ok === false);
+  check("pieces to weight refuses without piece weight", convert(2,"each","g",{}).ok === false);
+  check("unknown unit refuses", convert(1,"handful","g").ok === false);
+
+  out.push("");
+  out.push("UNIT PRICING");
+  const flour = {id:"f", name:"Flour", baseUnit:"g"};
+  const uc = unitCostOf({packQty:25, packUnit:"kg", packPrice:22.50}, flour);
+  check("25 kg for 22.50 is 0.0009 per g", near(uc.value, 0.0009, 1e-9), uc.value);
+  const eggs = {id:"e", name:"Eggs", baseUnit:"each", gramsPerEach:55};
+  check("30 eggs for 6.60 is 0.22 each", near(unitCostOf({packQty:30, packUnit:"each", packPrice:6.60}, eggs).value, 0.22));
+  check("a pack with no size is refused", unitCostOf({packQty:0, packUnit:"kg", packPrice:5}, flour).ok === false);
+
+  out.push("");
+  out.push("RECIPE COSTING");
+  S.settings = Object.assign({}, DEFAULT_SETTINGS, {symbol:"$", targetFoodCostPct:30, labourPerHour:12, overheadPct:10});
+  S.suppliers = [{id:"s1", name:"Metro", minOrder:50}, {id:"s2", name:"Corner"}];
+  S.ingredients = [flour, {id:"b", name:"Butter", baseUnit:"g"}];
+  S.prices = [
+    {id:"p1", supplierId:"s1", ingredientId:"f", packQty:25, packUnit:"kg", packPrice:22.50, date:todayISO()},
+    {id:"p2", supplierId:"s2", ingredientId:"f", packQty:1.5, packUnit:"kg", packPrice:2.40, date:todayISO()},
+    {id:"p3", supplierId:"s2", ingredientId:"b", packQty:250, packUnit:"g", packPrice:2.60, date:todayISO()}
+  ];
+  S.recipes = [];
+  reindex();
+
+  check("cheapest flour is Metro at 0.0009 per g", near(bestPriceFor("f").unitCost, 0.0009, 1e-9), bestPriceFor("f").unitCost);
+  S.ix.ing.f.defaultSupplierId = "s2";
+  check("pinning a supplier overrides cheapest", near(bestPriceFor("f").unitCost, 0.0016, 1e-9), bestPriceFor("f").unitCost);
+  delete S.ix.ing.f.defaultSupplierId;
+
+  const r1 = {id:"r1", name:"Test", servings:2, lines:[{ingredientId:"f", qty:500, unit:"g", wastePct:0}], business:{}};
+  const c1 = costRecipe(r1, 1);
+  check("500 g of flour costs 0.45", near(c1.ingredCost, 0.45), c1.ingredCost);
+  check("overhead of 10 percent is added", near(c1.total, 0.495), c1.total);
+  check("per serving splits by servings", near(c1.perServing, 0.2475), c1.perServing);
+
+  const r2 = {id:"r2", name:"Waste", servings:1, lines:[{ingredientId:"f", qty:500, unit:"g", wastePct:10}], business:{}};
+  check("10 percent waste buys 555.6 g", near(costRecipe(r2,1).ingredCost, 0.5, 0.0005), costRecipe(r2,1).ingredCost);
+
+  const r3 = {id:"r3", name:"Scaled", servings:2, lines:[{ingredientId:"f", qty:500, unit:"g", wastePct:0}], business:{}};
+  check("scaling by 3 triples the cost", near(costRecipe(r3,3).ingredCost, 1.35), costRecipe(r3,3).ingredCost);
+  check("scaling keeps cost per serving", near(costRecipe(r3,3).perServing, costRecipe(r3,1).perServing));
+
+  const r4 = {id:"r4", name:"Cups", servings:1, lines:[{ingredientId:"f", qty:2, unit:"cup", wastePct:0}], business:{}};
+  check("a cup line is refused without a density", costRecipe(r4,1).unpriced === 1);
+  S.ix.ing.f.densityGPerMl = 0.53;
+  check("with a density the cup line costs 0.226", near(costRecipe(r4,1).ingredCost, 0.2257, 0.0005), costRecipe(r4,1).ingredCost);
+  delete S.ix.ing.f.densityGPerMl;
+
+  const r5 = {id:"r5", name:"Sold", servings:1, lines:[{ingredientId:"f", qty:500, unit:"g", wastePct:0}],
+    business:{sellingPrice:2, targetFoodCostPct:25, labourMin:30}};
+  const c5 = costRecipe(r5, 1);
+  check("labour at 12 an hour adds 6.00 for 30 min", near(c5.labour, 6), c5.labour);
+  check("food cost percent uses the selling price", near(c5.foodCostPct, (c5.total/2)*100, 0.001));
+  check("suggested price hits the target percent", near(c5.suggestedPrice, c5.total/0.25, 0.001));
+  check("margin is price minus cost", near(c5.margin, 2 - c5.total, 0.001));
+
+  out.push("");
+  out.push("SOURCING");
+  const plan = sourcingPlan([{ingredientId:"f", baseQty:1000}, {ingredientId:"b", baseQty:200}]);
+  check("flour is sourced from the cheaper supplier", plan.perItem[0].best.supplier.name === "Metro");
+  check("cheapest split adds up", near(plan.splitTotal, 0.9 + 2.08, 0.001), plan.splitTotal);
+  const metro = plan.baskets.find(b => b.supplier.name === "Metro");
+  check("Metro cannot cover the butter", metro.missing.length === 1);
+  check("Metro basket is under its minimum", metro.belowMin === true);
+  const corner = plan.baskets.find(b => b.supplier.name === "Corner");
+  check("Corner covers everything", corner.missing.length === 0);
+  check("one stop at Corner costs more", corner.total > plan.splitTotal);
+
+  out.push("");
+  out.push("READING WRITTEN LINES");
+  const a = parseIngredientLine("250 g plain flour");
+  check("250 g plain flour", a.qty === 250 && a.unit === "g" && a.rawName === "plain flour", a);
+  const b2 = parseIngredientLine("1 1/2 cups milk");
+  check("1 1/2 cups milk", near(b2.qty, 1.5) && b2.unit === "cup" && b2.rawName === "milk", b2);
+  const c2 = parseIngredientLine("2 tablespoons olive oil");
+  check("2 tablespoons olive oil", c2.qty === 2 && c2.unit === "tbsp", c2);
+  const d2 = parseIngredientLine("3 onions");
+  check("3 onions falls back to each", d2.qty === 3 && d2.unit === "each" && d2.rawName === "onions", d2);
+  const e2 = parseIngredientLine("salt to taste");
+  check("salt to taste keeps its text", e2.rawName.indexOf("salt") >= 0, e2);
+
+  const f3 = parseIngredientLine("½ cup milk");
+  check("½ cup milk reads as half a cup", near(f3.qty, 0.5) && f3.unit === "cup" && f3.rawName === "milk", f3);
+  const f4 = parseIngredientLine("1½ cups flour");
+  check("1½ cups flour reads as one and a half", near(f4.qty, 1.5) && f4.unit === "cup", f4);
+
+  out.push("");
+  out.push("BUSINESS FIGURES ARE PER SERVING");
+  S.suppliers = [{id:"s1", name:"Metro"}];
+  S.ingredients = [{id:"f", name:"Flour", baseUnit:"g"}];
+  S.prices = [{id:"p1", supplierId:"s1", ingredientId:"f", packQty:25, packUnit:"kg", packPrice:22.50, date:todayISO()}];
+  reindex();
+  const c6 = costRecipe({id:"r6", name:"Loaf", servings:12, lines:[{ingredientId:"f", qty:500, unit:"g"}],
+    business:{sellingPrice:0.5, targetFoodCostPct:30}}, 1);
+  check("12-slice loaf: food cost 8.25% of a 0.50 slice", near(c6.foodCostPct, 8.25, 0.01), c6.foodCostPct);
+  check("suggested price is per slice", near(c6.suggestedPrice, 0.1375, 0.0001), c6.suggestedPrice);
+  check("margin is per slice", near(c6.margin, 0.45875, 0.0001), c6.margin);
+  check("doubling the batch keeps the per-slice figures", near(costRecipe({id:"r6", servings:12,
+    lines:[{ingredientId:"f", qty:500, unit:"g"}], business:{sellingPrice:0.5}}, 2).foodCostPct, 8.25, 0.01));
+  S.prices.push({id:"p9", supplierId:"gone", ingredientId:"f", packQty:1, packUnit:"kg", packPrice:0.01, date:todayISO()});
+  check("a price from a deleted supplier is never used", near(bestPriceFor("f").unitCost, 0.0009, 1e-9));
+
+  out.push("");
+  out.push("LINKING WRITTEN INGREDIENTS");
+  S.ingredients = ["Butter","Salt","Eggs","Chicken thigh","Plain flour","Onion","Sunflower oil"]
+    .map((n, k) => ({id:"m" + k, name:n, baseUnit:"g"}));
+  reindex();
+  const mm = s => { const h = matchIngredient(s); return h ? h.name : null; };
+  check("unsalted butter → Butter", mm("unsalted butter") === "Butter", mm("unsalted butter"));
+  check("salted caramel sauce stays unlinked", mm("salted caramel sauce") === null, mm("salted caramel sauce"));
+  check("egg noodles do not become Eggs", mm("egg noodles") === null, mm("egg noodles"));
+  check("large eggs → Eggs", mm("large eggs") === "Eggs", mm("large eggs"));
+  check("chicken thighs, diced → Chicken thigh", mm("chicken thighs, diced") === "Chicken thigh", mm("chicken thighs, diced"));
+  check("onions → Onion", mm("onions") === "Onion", mm("onions"));
+  check("onion powder stays unlinked", mm("onion powder") === null, mm("onion powder"));
+  check("flour alone → Plain flour", mm("flour") === "Plain flour", mm("flour"));
+  check("olive oil does not become Sunflower oil", mm("olive oil") === null, mm("olive oil"));
+  check("a stray letter links nothing", mm("o") === null, mm("o"));
+
+  out.push("");
+  out.push("PRICE HISTORY AND ALERTS");
+  const ago = n => daysAgoISO(n);
+  S.suppliers = [{id:"s1", name:"Metro"}, {id:"s2", name:"Corner"}];
+  S.ingredients = [{id:"f", name:"Flour", baseUnit:"g"}, {id:"b", name:"Butter", baseUnit:"g"}];
+  S.prices = [
+    {id:"p1", supplierId:"s1", ingredientId:"f", packQty:25, packUnit:"kg", packPrice:30, date:ago(5),
+      history:[{date:ago(60), packQty:25, packUnit:"kg", packPrice:25}]},
+    {id:"p2", supplierId:"s2", ingredientId:"f", packQty:1, packUnit:"kg", packPrice:2, date:ago(10)},
+    {id:"p4", supplierId:"s2", ingredientId:"b", packQty:250, packUnit:"g", packPrice:2.6, date:ago(3)}];
+  S.recipes = [
+    {id:"rA", name:"Bread", servings:1, lines:[{ingredientId:"f", qty:1000, unit:"g"}], business:{}},
+    {id:"rB", name:"Butter only", servings:1, lines:[{ingredientId:"b", qty:100, unit:"g"}], business:{}}];
+  S.settings.alertPct = 10;
+  reindex();
+  check("a month ago uses the quote then in force", quoteAsOf(S.prices[0], ago(30)).packPrice === 25);
+  check("a quote from after that day is not used", quoteAsOf(S.prices[1], ago(30)) === null);
+  check("flour went up 20% this month", near(ingredientTrend("f"), 20, 0.01), ingredientTrend("f"));
+  const al = costAlerts();
+  check("bread is flagged at +20%", al.length === 1 && al[0].recipe.id === "rA" && near(al[0].change, 20, 0.01), al.map(a => a.recipe.id + " " + a.change));
+  check("a newly priced ingredient is not called a price rise", !al.some(a => a.recipe.id === "rB"));
+  S.settings.alertPct = 25;
+  check("a 25% threshold hides a 20% move", costAlerts().length === 0);
+  S.settings.alertPct = 10;
+
+  out.push("");
+  out.push("PANTRY");
+  S.ingredients = [{id:"f", name:"Flour", baseUnit:"g", stock:600}, {id:"e", name:"Eggs", baseUnit:"each", stock:0}];
+  S.prices = [
+    {id:"p1", supplierId:"s1", ingredientId:"f", packQty:1, packUnit:"kg", packPrice:2, date:todayISO()},
+    {id:"p3", supplierId:"s1", ingredientId:"e", packQty:12, packUnit:"each", packPrice:3.6, date:todayISO()}];
+  S.recipes = [
+    {id:"rP", name:"Pasta", servings:2, lines:[{ingredientId:"f", qty:500, unit:"g"}, {ingredientId:"e", qty:3, unit:"each"}]},
+    {id:"rF", name:"Flatbread", servings:2, lines:[{ingredientId:"f", qty:400, unit:"g"}]}];
+  reindex();
+  const sfP = recipeShortfall(S.recipes[0]), sfF = recipeShortfall(S.recipes[1]);
+  check("flatbread can be cooked from stock", sfF.missing === 0 && sfF.unknown === 0, sfF);
+  check("pasta needs 3 eggs bought, 0.90", sfP.missing === 1 && near(sfP.cost, 0.9, 0.001), sfP);
+  S.shopping = {recipes:{rP:2}, extras:[], useStock:true};
+  const fl = shoppingNeeds().find(x => x.ingredientId === "f");
+  check("stock comes off: need 1000 g, have 600 g, buy 400 g", near(fl.need, 1000) && near(fl.have, 600) && near(fl.baseQty, 400), fl);
+  S.shopping.useStock = false;
+  check("with stock ignored the full amount is bought", near(shoppingNeeds().find(x => x.ingredientId === "f").baseQty, 1000));
+
+  out.push("");
+  out.push("ORDERS IN WHOLE PACKS");
+  S.suppliers = [{id:"s1", name:"Metro", deliveryDays:["Tue","Fri"], leadTimeDays:2, minOrder:50}, {id:"s2", name:"Corner"}];
+  S.prices = [
+    {id:"p1", supplierId:"s1", ingredientId:"f", packQty:25, packUnit:"kg", packPrice:22.5, packLabel:"25 kg sack", date:todayISO()},
+    {id:"p2", supplierId:"s2", ingredientId:"f", packQty:1, packUnit:"kg", packPrice:2, date:todayISO()}];
+  S.settings.orderName = "Test Cook";
+  reindex();
+  const plan2 = sourcingPlan([{ingredientId:"f", baseQty:30000}]);
+  const pk = packsFor(plan2.perItem[0]);
+  check("30 kg of flour is 2 sacks of 25 kg", pk.packs === 2 && near(pk.cost, 45) && near(pk.left, 20000), pk);
+  check("an exact amount needs no extra pack", packsFor(sourcingPlan([{ingredientId:"f", baseQty:25000}]).perItem[0]).packs === 1);
+  const ord = buildOrders(plan2)[0];
+  check("the order is under Metro's 50 minimum", ord.belowMin === true);
+  check("the message lists packs and signs off", /2 × 25 kg sack — Flour/.test(ord.text) && /Test Cook$/.test(ord.text), ord.text);
+  const nd = nextDelivery(S.suppliers[0]);
+  check("next delivery is a Tue or Fri at least 2 days out", !!nd && (nd.getDay() === 2 || nd.getDay() === 5) && nd - Date.now() >= 2*86400000 - 1000, String(nd));
+  S.ingredients[0].defaultSupplierId = "s2";
+  reindex();
+  check("shopping honours an Always use pin", sourcingPlan([{ingredientId:"f", baseQty:1000}]).perItem[0].best.price.supplierId === "s2");
+  delete S.ingredients[0].defaultSupplierId;
+
+  out.push("");
+  out.push("LINKS");
+  check("web links pass", safeUrl("https://example.com/a") === "https://example.com/a");
+  check("a bare domain gets https", safeUrl("metro.com") === "https://metro.com");
+  check("javascript: links are refused", safeUrl("javascript:alert(1)") === null);
+
+  out.push("");
+  out.push(fail ? fail + " FAILED, " + pass + " passed" : "All " + pass + " checks passed.");
+
+  document.getElementById("root").append(
+    el("div", {id:"testout"},
+      el("h1", {style:"font-family:var(--display);font-size:22px;margin-bottom:12px"}, "Kitchen Book — maths check"),
+      out.join("\n")));
+}
+
+/* ======================= boot ======================= */
+let renderQueued = false;
+function scheduleRender(){
+  if(renderQueued) return;
+  renderQueued = true;
+  /* A timer, not requestAnimationFrame: rAF is paused while the page is hidden,
+     which would leave data that arrived in the background unrendered. */
+  setTimeout(() => { renderQueued = false; render(); }, 16);
+}
+
+/* Cache the app itself so it opens with no signal. */
+function registerWorker(){
+  if(!("serviceWorker" in navigator)) return;
+  if(location.protocol !== "https:" && location.hostname !== "localhost") return;
+  navigator.serviceWorker.register("sw.js").catch(e => console.warn("offline cache unavailable", e));
+}
+
+async function boot(){
+  let wantsTest = false;
+  try { wantsTest = new URLSearchParams(location.search).has("selftest") || location.hash === "#selftest"; } catch(e){}
+  if(wantsTest){
+    document.getElementById("root").textContent = "";
+    runSelfTest();
+    return;
+  }
+  S.route = parseHash();
+  window.addEventListener("hashchange", () => { S.route = parseHash(); S.ui.scale = 1; render(); });
+  document.addEventListener("click", e => {
+    const a = e.target.closest && e.target.closest('a[href^="#/"]');
+    if(a){ e.preventDefault(); go(a.getAttribute("href").slice(2)); }
+  });
+
+  S.mode = await Store.init();
+  render();
+
+  const arrived = {};
+  const collections = ["settings","suppliers","ingredients","prices","recipes","feed","shopping"];
+  const onArrive = async (name) => {
+    arrived[name] = true;
+    if(collections.every(c => arrived[c]) && !S.loaded){
+      S.loaded = true;
+      await maybeSeed();
+      pruneFeed();
+      scheduleRender();
+    }
+  };
+
+  Store.watch("settings", docs => {
+    const app = docs.find(d => d.id === "app") || {};
+    S.settings = Object.assign({}, DEFAULT_SETTINGS, app);
+    S.settings.taste = Object.assign({}, DEFAULT_SETTINGS.taste, app.taste || {});
+    scheduleRender(); onArrive("settings");
+  });
+  Store.watch("suppliers",   docs => { S.suppliers = docs; scheduleRender(); onArrive("suppliers"); });
+  Store.watch("ingredients", docs => { S.ingredients = docs; scheduleRender(); onArrive("ingredients"); });
+  Store.watch("prices",      docs => { S.prices = docs; scheduleRender(); onArrive("prices"); });
+  Store.watch("recipes",     docs => { S.recipes = docs; scheduleRender(); onArrive("recipes"); });
+  Store.watch("feed",        docs => { S.feed = docs; scheduleRender(); onArrive("feed"); });
+  Store.watch("shopping",    docs => {
+    const cur = docs.find(d => d.id === "current");
+    S.shopping = {recipes:(cur && cur.recipes) || {}, extras:(cur && cur.extras) || [], useStock:!(cur && cur.useStock === false)};
+    scheduleRender(); onArrive("shopping");
+  });
+
+  initSample();
+  registerWorker();
+}
+
+boot();
+})();
+</script>
+</body>
+</html>

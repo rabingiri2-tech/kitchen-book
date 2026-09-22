@@ -1,0 +1,90 @@
+name: Build Android APK
+
+# Runs on GitHub's machines — nothing to install on your computer.
+# Start it by hand from the Actions tab, or let it run when the app changes.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "index.html"
+      - "manifest.webmanifest"
+      - "sw.js"
+      - "icon-192.png"
+      - "assets/icon.png"
+      - "capacitor.config.json"
+      - "package.json"
+      - ".github/workflows/build-apk.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Make sure the Android SDK has what Capacitor needs
+        continue-on-error: true
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ -x "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+            "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" > /dev/null 2>&1 || true
+          fi
+
+      - name: Gather the app files
+        run: |
+          mkdir -p www
+          cp index.html manifest.webmanifest sw.js icon-192.png www/
+          ls -l www
+
+      - name: Install Capacitor
+        run: npm install
+
+      - name: Create the Android project
+        run: npx cap add android
+
+      - name: Launcher icons
+        continue-on-error: true
+        run: npx @capacitor/assets@3 generate --android --iconBackgroundColor "#6E2E58" --splashBackgroundColor "#EFEFEC"
+
+      - name: Copy the app into the Android project
+        run: npx cap sync android
+
+      - name: Build the APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Name the file
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk out/kitchen-book.apk
+          ls -lh out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kitchen-book-apk
+          path: out/kitchen-book.apk
+          if-no-files-found: error
+
+      # A release gives you a plain download link you can open on the phone.
+      - name: Publish it as a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-$(date +%Y%m%d-%H%M)"
+          gh release create "$TAG" out/kitchen-book.apk \
+            --title "Kitchen Book $TAG" \
+            --notes "Download kitchen-book.apk on your Android phone and open it to install."

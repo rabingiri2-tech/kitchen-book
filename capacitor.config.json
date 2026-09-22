@@ -1,0 +1,11 @@
+{
+  "appId": "com.kitchenbook.app",
+  "appName": "Kitchen Book",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#EFEFEC"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
