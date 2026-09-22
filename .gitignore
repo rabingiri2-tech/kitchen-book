@@ -5,6 +5,3 @@ android/
 out/
 package-lock.json
 .DS_Store
-
-# an empty repo left over from an earlier attempt
-kitchen book/

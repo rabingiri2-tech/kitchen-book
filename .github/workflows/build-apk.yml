@@ -18,6 +18,11 @@ on:
 permissions:
   contents: write
 
+# If you push twice in a row, drop the older build rather than run both.
+concurrency:
+  group: build-apk
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
