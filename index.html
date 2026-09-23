@@ -3253,6 +3253,17 @@ function openImportData(){
     wide:true, title:"Restore from backup",
     body: () => frag(
       el("div", {class:"banner"}, "This adds everything in the file back into your book. Rows with the same id are overwritten."),
+      el("div", {class:"row", style:"align-items:center"},
+        btn("Choose backup file", {icon:"down", onClick:() => document.getElementById("restore-file").click()}),
+        el("span", {class:"hint"}, "or paste the backup text below")),
+      el("input", {type:"file", id:"restore-file", accept:".json,application/json,text/plain", style:"display:none",
+        onchange:async e => {
+          const f = e.target.files[0];
+          if(!f) return;
+          text = await f.text();
+          const box = document.getElementById("restore-box");
+          if(box) box.value = text;
+        }}),
       el("textarea", {id:"restore-box", style:"min-height:240px;font-family:var(--mono);font-size:12px", placeholder:"Paste the backup file contents here", oninput:e => text = e.target.value})),
     footer: () => frag(
       btn("Cancel", {cls:"ghost", onClick:closeModal}),

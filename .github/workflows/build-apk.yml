@@ -71,6 +71,39 @@ jobs:
           rm -f "$RES/drawable-v24/ic_launcher_foreground.xml" "$RES/drawable/ic_launcher_background.xml"
           ls -l "$RES"/mipmap-xxxhdpi "$RES"/mipmap-anydpi-v26
 
+      # Android only installs an update over the old app when both are signed
+      # with the same key. Each GitHub machine would otherwise invent a new
+      # debug key, so make one the first time, keep it in the repo, and sign
+      # every build with it.
+      - name: Use the same signing key every time
+        run: |
+          if [ ! -f signing/debug.keystore ]; then
+            mkdir -p signing
+            keytool -genkeypair -keystore signing/debug.keystore \
+              -storepass android -keypass android -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Kitchen Book, O=Personal, C=US"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add signing/debug.keystore
+            git commit -m "Keep one signing key so app updates install over the old app"
+            git push
+          fi
+          cat >> android/app/build.gradle <<'GRADLE'
+
+          android {
+              signingConfigs {
+                  debug {
+                      storeFile file("$rootDir/../signing/debug.keystore")
+                      storePassword "android"
+                      keyAlias "androiddebugkey"
+                      keyPassword "android"
+                  }
+              }
+          }
+          GRADLE
+          tail -12 android/app/build.gradle
+
       - name: Copy the app into the Android project
         run: npx cap sync android
 
