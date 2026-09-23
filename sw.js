@@ -3,7 +3,7 @@
    Google Fonts are cached the first time they are fetched. Calls to the
    AI (Google Gemini, api.anthropic.com, the SDK on jsdelivr) are never cached — those
    need a live connection anyway. */
-const VERSION = "kitchen-book-v3";
+const VERSION = "kitchen-book-v4";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png"];
 
 self.addEventListener("install", event => {
