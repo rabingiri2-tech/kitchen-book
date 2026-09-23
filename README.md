@@ -1,6 +1,6 @@
 # Kitchen Book
 
-Recipes costed from your own supplier prices â what each dish costs, who to buy
+Recipes costed from your own supplier prices — what each dish costs, who to buy
 each ingredient from, and a shopping list that works out the cheapest split.
 
 Runs in a browser, installs as an app on a phone, and builds to an Android APK
@@ -10,7 +10,7 @@ here on GitHub.
 
 - **Costing.** Every price is normalised to a base unit, so a 25 kg sack and a
   1.5 kg bag compare honestly. Waste, scaling, labour and overhead all fold in.
-  Business figures â selling price, food-cost %, margin â are per serving.
+  Business figures — selling price, food-cost %, margin — are per serving.
 - **Suppliers.** Every quote side by side at a real unit price, cheapest flagged,
   stale quotes marked. Pin one supplier if you always buy from them.
 - **Shopping.** Pick recipes and batches; it consolidates ingredients, subtracts
@@ -30,23 +30,23 @@ here on GitHub.
   shadows and yellowed paper to white; Black & white; Photo), and save
   it as a PDF (all pages), JPG or PNG at A4, A5, Letter, passport or any custom
   size, and under a size limit (50 KB to 2 MB). In the Android app, files go to
-  Documents âº KitchenBook or the share sheet.
+  Documents › KitchenBook or the share sheet.
 - **Search** on every list: today's ideas, recipes, ingredients, suppliers, the
   shopping picker and scanned pages.
 - **AI features** (write a recipe, ideas, import, cheaper swaps, bill scanning) use
   **Google Gemini** with a free key from https://aistudio.google.com/apikey, or
-  Anthropic Claude with a paid key. Choose under Settings â AI features. On
+  Anthropic Claude with a paid key. Choose under Settings → AI features. On
   Gemini's free tier Google may use what you send to improve its products.
   Everything else works offline with no key and no account.
 
-Data lives on the device. Move it between devices with Settings â Download a
+Data lives on the device. Move it between devices with Settings → Download a
 backup / Restore from backup.
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `index.html` | The whole app â no build step, no dependencies |
+| `index.html` | The whole app — no build step, no dependencies |
 | `manifest.webmanifest`, `sw.js`, `icon-192.png` | What makes it installable and offline |
 | `.github/workflows/build-apk.yml` | Builds the Android APK on GitHub's machines |
 | `capacitor.config.json`, `package.json`, `assets/` | Used only by that build |
@@ -54,7 +54,7 @@ backup / Restore from backup.
 ## Getting it on a phone
 
 - **As an installable web app:** see [SETUP.md](SETUP.md)
-- **As an APK:** see [BUILD-APK.md](BUILD-APK.md) â Actions tab â Build Android APK â
+- **As an APK:** see [BUILD-APK.md](BUILD-APK.md) — Actions tab → Build Android APK →
   Run workflow, then download the APK from Releases
 
 ## Checking the maths
