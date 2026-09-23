@@ -182,7 +182,7 @@ label.f>input,label.f>select,label.f>textarea{font-weight:400;color:var(--ink);l
 .thinking i{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.1s ease-in-out infinite}
 .thinking i:nth-child(2){animation-delay:.15s}.thinking i:nth-child(3){animation-delay:.3s}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
-.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:13.5px;font-weight:500;z-index:80;box-shadow:var(--shadow)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:13.5px;font-weight:500;z-index:300;box-shadow:var(--shadow)}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .split>*,.stack{min-width:0}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
@@ -210,6 +210,30 @@ label.f>input,label.f>select,label.f>textarea{font-weight:400;color:var(--ink);l
 .sc-handle:active{cursor:grabbing;background:rgba(231,166,208,.45)}
 .sc-mag{position:absolute;top:10px;width:104px;height:104px;border-radius:50%;border:2px solid #E7A6D0;overflow:hidden;pointer-events:none;background:#000;display:none;z-index:5}
 .sc-mag canvas{width:100%;height:100%}
+/* live scanner */
+body.lv-open{overflow:hidden}
+body.lv-open .toast{bottom:calc(120px + env(safe-area-inset-bottom))}
+.lv{position:fixed;inset:0;z-index:200;background:#000;color:#fff;display:flex;flex-direction:column;font-family:var(--body)}
+.lv-stage{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:manipulation}
+.lv-video,.lv-overlay{position:absolute;inset:0;width:100%;height:100%}
+.lv-video{object-fit:contain;background:#000}
+.lv-overlay{pointer-events:none}
+.lv-hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(0,0,0,.62);padding:7px 14px;border-radius:999px;font-size:13.5px;font-weight:600;max-width:92%;text-align:center;pointer-events:none}
+.lv-top{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;background:linear-gradient(rgba(0,0,0,.55),transparent)}
+.lv-chip{border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;border-radius:999px;padding:7px 13px;font:600 13px var(--body);cursor:pointer}
+.lv-chip.on{background:#fff;color:#111;border-color:#fff}
+.lv-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px calc(18px + env(safe-area-inset-bottom));background:#000}
+.lv-shutter{width:74px;height:74px;border-radius:50%;border:4px solid #fff;background:transparent;padding:5px;cursor:pointer;flex:none}
+.lv-shutter span{display:block;width:100%;height:100%;border-radius:50%;background:#fff}
+.lv-shutter:active span{transform:scale(.9)}
+.lv-thumb{width:52px;height:52px;border-radius:8px;border:2px solid rgba(255,255,255,.7);background:#222 center/cover no-repeat;color:#fff;font:700 13px var(--mono);cursor:pointer;flex:none;text-shadow:0 1px 3px #000}
+.lv-done{min-width:74px;border:0;border-radius:999px;background:#fff;color:#111;padding:10px 16px;font:700 14px var(--body);cursor:pointer}
+.lv-ring{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border:2px solid #FFD54A;border-radius:50%;opacity:0;pointer-events:none}
+.lv-ring.go{animation:lvring .9s ease-out}
+@keyframes lvring{0%{opacity:1;transform:scale(1.5)}60%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+.lv-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.lv-flash.go{animation:lvflash .35s ease-out}
+@keyframes lvflash{0%{opacity:.85}100%{opacity:0}}
 .linkbtn{border:0;background:none;padding:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer}
 .ico{display:inline-flex;align-items:center;flex:none}
 code{font-family:var(--mono);font-size:12.5px;background:var(--sunk);padding:1px 5px;border-radius:4px}
@@ -3519,14 +3543,22 @@ function quadAspect(q){
 
 /* Pull the quad out of the source and lay it flat into outW × outH. */
 function warpQuad(src, quad, outW, outH){
-  const longest = Math.max(outW, outH) * 1.4;
-  const scale = Math.min(1, longest / Math.max(src.width, src.height));
+  /* Shrink the photo first only as far as the PAGE keeps 1.5 photo pixels for
+     every output pixel, and shrink it smoothly. Sizing this by the whole photo
+     used to squash the page below the output size and stretch it back up,
+     which is what made scans soft. */
+  const across = Math.max(dist(quad[0], quad[1]), dist(quad[3], quad[2]), 1);
+  const down = Math.max(dist(quad[0], quad[3]), dist(quad[1], quad[2]), 1);
+  const scale = Math.min(1, Math.max(outW * 1.5 / across, outH * 1.5 / down));
   const sw = Math.max(1, Math.round(src.width * scale));
   const sh = Math.max(1, Math.round(src.height * scale));
   const sc = document.createElement("canvas");
   sc.width = sw; sc.height = sh;
-  sc.getContext("2d", {willReadFrequently:true}).drawImage(src, 0, 0, sw, sh);
-  const sdata = sc.getContext("2d", {willReadFrequently:true}).getImageData(0, 0, sw, sh).data;
+  const sctx = sc.getContext("2d", {willReadFrequently:true});
+  sctx.imageSmoothingEnabled = true;
+  sctx.imageSmoothingQuality = "high";
+  sctx.drawImage(src, 0, 0, sw, sh);
+  const sdata = sctx.getImageData(0, 0, sw, sh).data;
 
   const m = squareToQuad(quad.map(p => ({x:p.x * scale, y:p.y * scale})));
   const out = document.createElement("canvas");
@@ -3562,51 +3594,105 @@ function warpQuad(src, quad, outW, outH){
 
 /* ======================= look of the scan ======================= */
 const FILTERS = [
+  {id:"doc",      label:"Document"},
   {id:"original", label:"Photo"},
-  {id:"boost",    label:"Brighten"},
+  {id:"bw",       label:"Black & white"},
   {id:"grey",     label:"Grey"},
-  {id:"doc",      label:"Document"}
+  {id:"boost",    label:"Brighten"}
 ];
+/* Sliding maximum and box average along rows, then columns. */
+function maxFilter(a, w, h, r){
+  const t = new Float32Array(w*h), o = new Float32Array(w*h);
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    let m = 0;
+    for(let k = Math.max(0, x-r), e = Math.min(w-1, x+r); k <= e; k++) if(a[y*w+k] > m) m = a[y*w+k];
+    t[y*w+x] = m;
+  }
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    let m = 0;
+    for(let k = Math.max(0, y-r), e = Math.min(h-1, y+r); k <= e; k++) if(t[k*w+x] > m) m = t[k*w+x];
+    o[y*w+x] = m;
+  }
+  return o;
+}
+function boxBlur(a, w, h, r){
+  const t = new Float32Array(w*h), o = new Float32Array(w*h);
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    let s = 0, n = 0;
+    for(let k = Math.max(0, x-r), e = Math.min(w-1, x+r); k <= e; k++){ s += a[y*w+k]; n++; }
+    t[y*w+x] = s / n;
+  }
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    let s = 0, n = 0;
+    for(let k = Math.max(0, y-r), e = Math.min(h-1, y+r); k <= e; k++){ s += t[k*w+x]; n++; }
+    o[y*w+x] = s / n;
+  }
+  return o;
+}
+/* The paper's own colour at every point of the page, from a small copy:
+   the brightest value nearby steps over the ink, and smoothing removes the
+   blockiness. Dividing by it turns shadows and yellowed paper white while the
+   writing keeps its soft edges — the way WhatsApp and CamScanner clean a page. */
+function paperMap(canvas){
+  const W = canvas.width, H = canvas.height;
+  const f = Math.min(1, 160 / Math.max(W, H));
+  const w = Math.max(8, Math.round(W * f)), h = Math.max(8, Math.round(H * f));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const cx = c.getContext("2d", {willReadFrequently:true});
+  cx.imageSmoothingQuality = "high";
+  cx.drawImage(canvas, 0, 0, w, h);
+  const d = cx.getImageData(0, 0, w, h).data;
+  const r = Math.max(2, Math.round(Math.max(w, h) / 40));
+  const maps = [0, 1, 2].map(ch => {
+    let a = new Float32Array(w * h);
+    for(let i = 0; i < w*h; i++) a[i] = d[i*4 + ch];
+    a = boxBlur(maxFilter(a, w, h, r), w, h, r);
+    /* Never lift anything more than about twice: a dark photo or a black box
+       on the page should stay dark, not wash out to grey. */
+    const sorted = Array.from(a).sort((p, q) => p - q);
+    const paper = sorted[Math.floor(sorted.length * 0.9)] || 255;
+    for(let i = 0; i < a.length; i++) a[i] = Math.max(a[i], paper * 0.5, 1);
+    return a;
+  });
+  return {maps:maps, w:w, h:h, fx:w / W, fy:h / H};
+}
 function applyFilter(canvas, filter){
   if(filter === "original") return canvas;
   const ctx = canvas.getContext("2d", {willReadFrequently:true});
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const d = img.data, n = canvas.width * canvas.height;
 
-  if(filter === "grey" || filter === "doc"){
-    const grey = new Uint8ClampedArray(n);
-    for(let i = 0, p = 0; i < n; i++, p += 4)
-      grey[i] = (d[p]*0.299 + d[p+1]*0.587 + d[p+2]*0.114) | 0;
-
-    if(filter === "grey"){
-      for(let i = 0, p = 0; i < n; i++, p += 4){ d[p] = d[p+1] = d[p+2] = grey[i]; }
-    } else {
-      /* Compare each pixel with the average of its neighbourhood, so a page
-         photographed with a shadow across it still comes out clean. */
-      const w = canvas.width, h = canvas.height;
-      const sum = new Float64Array((w+1) * (h+1));
-      for(let y = 0; y < h; y++){
-        let run = 0;
-        for(let x = 0; x < w; x++){
-          run += grey[y*w + x];
-          sum[(y+1)*(w+1) + x + 1] = sum[y*(w+1) + x + 1] + run;
-        }
-      }
-      const rad = Math.max(8, Math.round(Math.min(w, h) / 24));
-      const k = 0.13;
-      for(let y = 0; y < h; y++){
-        const y0 = Math.max(0, y - rad), y1 = Math.min(h - 1, y + rad);
-        for(let x = 0; x < w; x++){
-          const x0 = Math.max(0, x - rad), x1 = Math.min(w - 1, x + rad);
-          const area = (x1 - x0 + 1) * (y1 - y0 + 1);
-          const s = sum[(y1+1)*(w+1) + x1+1] - sum[y0*(w+1) + x1+1] - sum[(y1+1)*(w+1) + x0] + sum[y0*(w+1) + x0];
-          const mean = s / area;
-          const val = grey[y*w + x] > mean * (1 - k) ? 255 : 0;
-          const p = (y*w + x) * 4;
-          d[p] = d[p+1] = d[p+2] = val;
-        }
+  if(filter === "doc" || filter === "bw"){
+    const W = canvas.width, H = canvas.height;
+    const pm = paperMap(canvas), mw = pm.w, mh = pm.h;
+    /* tone curves: paper to pure white, ink a little deeper, edges kept smooth */
+    const docLut = new Uint8ClampedArray(256), bwLut = new Uint8ClampedArray(256);
+    for(let v = 0; v < 256; v++){
+      const t = Math.max(0, Math.min(1, (v / 255 - 0.08) / 0.78));
+      docLut[v] = Math.round(255 * Math.pow(t, 1.35));
+      bwLut[v] = Math.round(255 * Math.max(0, Math.min(1, (v - 140) / 60)));
+    }
+    const m0 = pm.maps[0], m1 = pm.maps[1], m2 = pm.maps[2];
+    for(let y = 0; y < H; y++){
+      const sy = Math.max(0, Math.min(mh - 1, (y + 0.5) * pm.fy - 0.5));
+      const y0 = sy | 0, y1 = Math.min(mh - 1, y0 + 1), ay = sy - y0;
+      for(let x = 0; x < W; x++){
+        const sx = Math.max(0, Math.min(mw - 1, (x + 0.5) * pm.fx - 0.5));
+        const x0 = sx | 0, x1 = Math.min(mw - 1, x0 + 1), ax = sx - x0;
+        const i00 = y0*mw + x0, i10 = y0*mw + x1, i01 = y1*mw + x0, i11 = y1*mw + x1;
+        const w00 = (1-ax)*(1-ay), w10 = ax*(1-ay), w01 = (1-ax)*ay, w11 = ax*ay;
+        const p = (y*W + x) * 4;
+        const r = Math.min(255, d[p]   * 255 / (m0[i00]*w00 + m0[i10]*w10 + m0[i01]*w01 + m0[i11]*w11)) | 0;
+        const g = Math.min(255, d[p+1] * 255 / (m1[i00]*w00 + m1[i10]*w10 + m1[i01]*w01 + m1[i11]*w11)) | 0;
+        const b = Math.min(255, d[p+2] * 255 / (m2[i00]*w00 + m2[i10]*w10 + m2[i01]*w01 + m2[i11]*w11)) | 0;
+        if(filter === "doc"){ d[p] = docLut[r]; d[p+1] = docLut[g]; d[p+2] = docLut[b]; }
+        else { d[p] = d[p+1] = d[p+2] = bwLut[(r*0.299 + g*0.587 + b*0.114) | 0]; }
       }
     }
+  } else if(filter === "grey"){
+    for(let i = 0, p = 0; i < n; i++, p += 4)
+      d[p] = d[p+1] = d[p+2] = (d[p]*0.299 + d[p+1]*0.587 + d[p+2]*0.114) | 0;
   } else if(filter === "boost"){
     /* Stretch the range between the 2nd and 98th percentile, then lift colour. */
     const hist = new Uint32Array(256);
@@ -3697,18 +3783,28 @@ function cornersFromMask(mask, w, h){
   if(quadArea < w*h*0.06) return null;
   return {quad:quad, fill: area / quadArea, cover: quadArea / (w*h)};
 }
-function autoCorners(src){
-  const g = greyOf(src, 420);
+/* A page that clearly stands out from what it lies on, or null. */
+function pageFromGrey(g){
   const w = g.w, h = g.h, n = w * h;
   const level = splitLevel(g.grey);
   const bright = new Uint8Array(n), dark = new Uint8Array(n);
   for(let i = 0; i < n; i++){ if(g.grey[i] > level) bright[i] = 1; else dark[i] = 1; }
-  /* A pale page on a dark table is the usual case; try the other way round too. */
   /* Try both readings — a pale page on a dark table, and a dark card on a pale
      one — and keep whichever forms the more solid shape. */
   const cands = [cornersFromMask(bright, w, h), cornersFromMask(dark, w, h)].filter(Boolean);
   cands.sort((a, b) => (b.fill - a.fill) || (a.cover - b.cover));
-  let quad = cands.length ? cands[0].quad : null;
+  return cands[0] || null;
+}
+function findPage(src, maxSide){
+  const g = greyOf(src, maxSide || 420);
+  const hit = pageFromGrey(g);
+  return hit ? {quad:hit.quad.map(p => ({x:p.x / g.scale, y:p.y / g.scale})), fill:hit.fill, cover:hit.cover} : null;
+}
+function autoCorners(src){
+  const g = greyOf(src, 420);
+  const w = g.w, h = g.h;
+  const hit = pageFromGrey(g);
+  let quad = hit ? hit.quad : null;
 
   if(!quad){
     /* Nothing separated cleanly — fall back to where the detail is. */
@@ -3937,7 +4033,7 @@ const SC = {
   loaded: false, loading: false, busy: false, adding: 0,
   out: null,
   lastOpened: null,
-  opts: {sizeId:"a4", customW:210, customH:297, orient:"auto", dpi:200, marginMm:6, format:"pdf", limitKb:0, filename:""},
+  opts: {sizeId:"a4", customW:210, customH:297, orient:"auto", dpi:300, marginMm:6, format:"pdf", limitKb:0, filename:""},
   edit: null
 };
 const scanUid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -3949,7 +4045,7 @@ async function scanLoad(){
   const recs = (await scanDbAll()) || [];
   recs.sort((a, b) => (a.order || 0) - (b.order || 0));
   SC.pages = recs.map(r => ({id:r.id, blob:r.blob, rotate:r.rotate || 0, corners:r.corners, filter:r.filter || "doc",
-    name:r.name || "Scan", addedAt:r.addedAt || Date.now()}));
+    name:r.name || "Scan", addedAt:r.addedAt || Date.now(), cap:r.cap || 0}));
   for(const p of SC.pages){ try { await scanThumb(p); } catch(e){} }
   SC.loaded = true; SC.loading = false;
   scheduleRender();
@@ -3965,12 +4061,18 @@ async function workingCanvas(page){
   const bmp = await bitmapOf(page);
   const turned = page.rotate === 90 || page.rotate === 270;
   const c = document.createElement("canvas");
-  c.width = turned ? bmp.height : bmp.width;
-  c.height = turned ? bmp.width : bmp.height;
+  /* Pages added since the live camera arrived carry a pixel cap, so a 50 MP
+     phone photo cannot exhaust memory. Older pages keep their full size,
+     because their corners were placed on it. */
+  const k = page.cap ? Math.min(1, Math.sqrt(page.cap / (bmp.width * bmp.height))) : 1;
+  const bw = Math.round(bmp.width * k), bh = Math.round(bmp.height * k);
+  c.width = turned ? bh : bw;
+  c.height = turned ? bw : bh;
   const ctx = c.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
   ctx.translate(c.width / 2, c.height / 2);
   ctx.rotate(page.rotate * Math.PI / 180);
-  ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
+  ctx.drawImage(bmp, -bw / 2, -bh / 2, bw, bh);
   return c;
 }
 function rotatePage(page, work){
@@ -4020,7 +4122,7 @@ function pageGeometry(page, opts){
 
 async function scanPersist(page){
   await scanDbPut({id:page.id, blob:page.blob, rotate:page.rotate, corners:page.corners, filter:page.filter,
-    name:page.name, order:SC.pages.indexOf(page), addedAt:page.addedAt});
+    name:page.name, order:SC.pages.indexOf(page), addedAt:page.addedAt, cap:page.cap || 0});
 }
 async function scanThumb(page){
   const work = await workingCanvas(page);
@@ -4030,24 +4132,217 @@ async function scanThumb(page){
   if(page.thumbUrl) URL.revokeObjectURL(page.thumbUrl);
   page.thumbUrl = URL.createObjectURL(blob);
 }
+const PAGE_CAP = 16e6;
+/* Add one picture as a page. quadHint: corners seen on the live preview, as
+   fractions of the frame, used when the photo itself shows no clear page. */
+async function scanAddBlob(blob, name, quadHint, hintAspect){
+  const page = {id:scanUid(), blob:blob, rotate:0, filter:"doc", addedAt:Date.now(), name:name || "Scan",
+    corners:null, cap:PAGE_CAP};
+  const work = await workingCanvas(page);
+  const hit = quadHint ? findPage(work, 700) : null;
+  if(hit && hit.fill > 0.8) page.corners = hit.quad;
+  else if(quadHint && Math.abs(work.width / work.height - hintAspect) < 0.03)
+    page.corners = quadHint.map(p => ({x:p.x * work.width, y:p.y * work.height}));
+  else page.corners = autoCorners(work);
+  SC.pages.push(page);
+  await scanPersist(page);
+  await scanThumb(page);
+  return page;
+}
 async function scanAdd(files){
   const images = files.filter(f => /^image\//.test(f.type));
   if(!images.length){ toast("Those were not pictures"); return; }
   SC.adding = images.length; render();
   for(const f of images){
-    const page = {id:scanUid(), blob:f, rotate:0, filter:"doc", addedAt:Date.now(),
-      name:(f.name || "").replace(/\.[a-z0-9]+$/i, "").replace(/^(IMG|PXL|DSC)[_-]?/i, "Scan ") || "Scan", corners:null};
-    try {
-      page.corners = autoCorners(await workingCanvas(page));
-    } catch(e){ toast("One picture could not be opened"); continue; }
-    SC.pages.push(page);
-    await scanPersist(page);
-    await scanThumb(page);
+    const name = (f.name || "").replace(/\.[a-z0-9]+$/i, "").replace(/^(IMG|PXL|DSC)[_-]?/i, "Scan ") || "Scan";
+    try { await scanAddBlob(f, name); }
+    catch(e){ toast("One picture could not be opened"); }
     SC.adding--; render();
   }
   SC.adding = 0;
   render();
 }
+
+/* ======================= live camera, WhatsApp-style =======================
+   The camera stays focused on its own; the page's edges are found several
+   times a second and drawn over the picture; when the page has held still
+   for about a second the photo is taken by itself, at the camera's full
+   resolution. Tap the picture to focus on a spot. */
+const livePref = {
+  get(k, d){ try { const v = localStorage.getItem("kb.live." + k); return v == null ? d : v === "1"; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem("kb.live." + k, v ? "1" : "0"); } catch(e){} }
+};
+const quadMove = (a, b) => Math.max.apply(null, a.map((p, i) => Math.hypot(p.x - b[i].x, p.y - b[i].y)));
+
+async function openLiveScanner(fallback){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ fallback(); return; }
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({audio:false,
+      video:{facingMode:{ideal:"environment"}, width:{ideal:3840}, height:{ideal:2160}}});
+  } catch(e){
+    toast(e && e.name === "NotAllowedError"
+      ? "Camera permission is off for Kitchen Book — opening the camera app instead"
+      : "The live camera is not available here — opening the camera app instead");
+    fallback();
+    return;
+  }
+  const track = stream.getVideoTracks()[0];
+  let caps = {};
+  try { caps = (track.getCapabilities && track.getCapabilities()) || {}; } catch(e){}
+  const focusModes = caps.focusMode || [];
+  const tune = async c => { try { await track.applyConstraints({advanced:[c]}); return true; } catch(e){ return false; } };
+  if(focusModes.indexOf("continuous") >= 0) tune({focusMode:"continuous"});
+
+  const NEED = 5;   /* steady readings in a row (~1 s) before an automatic photo */
+  const L = {auto:livePref.get("auto", true), torch:false, stable:0, last:null, armed:true, taken:null,
+    lost:0, busy:false, count:0, closed:false};
+
+  const video = el("video", {class:"lv-video", autoplay:"autoplay", playsinline:"playsinline"});
+  video.muted = true;
+  video.srcObject = stream;
+  const overlay = el("canvas", {class:"lv-overlay"});
+  const ring = el("div", {class:"lv-ring"});
+  const flash = el("div", {class:"lv-flash"});
+  const hint = el("div", {class:"lv-hint"}, "Starting the camera…");
+  const stage = el("div", {class:"lv-stage"}, video, overlay, ring, flash, hint);
+  const autoBtn = el("button", {type:"button", class:"lv-chip"});
+  const torchBtn = caps.torch ? el("button", {type:"button", class:"lv-chip"}) : null;
+  const thumb = el("button", {type:"button", class:"lv-thumb", "aria-label":"Scanned pages", onclick:() => finish()});
+  const doneBtn = el("button", {type:"button", class:"lv-done", onclick:() => finish()}, "Done");
+  const shutter = el("button", {type:"button", class:"lv-shutter", "aria-label":"Take the photo", onclick:() => capture(L.last)}, el("span"));
+  const root = el("div", {class:"lv", role:"dialog", "aria-label":"Scan with the camera"},
+    stage,
+    el("div", {class:"lv-top"},
+      el("button", {type:"button", class:"lv-chip", onclick:() => finish()}, "✕"),
+      el("span", {style:"flex:1"}), autoBtn, torchBtn),
+    el("div", {class:"lv-bar"}, thumb, shutter, doneBtn));
+  const chips = () => {
+    autoBtn.textContent = L.auto ? "Auto ✓" : "Auto off";
+    autoBtn.classList.toggle("on", L.auto);
+    if(torchBtn){ torchBtn.textContent = L.torch ? "Light on" : "Light"; torchBtn.classList.toggle("on", L.torch); }
+    doneBtn.textContent = L.count ? "Done · " + L.count : "Done";
+  };
+  autoBtn.onclick = () => { L.auto = !L.auto; livePref.set("auto", L.auto); L.stable = 0; chips(); };
+  if(torchBtn) torchBtn.onclick = async () => { L.torch = !L.torch; if(!(await tune({torch:L.torch}))) L.torch = false; chips(); };
+  chips();
+  document.body.append(root);
+  document.body.classList.add("lv-open");
+
+  /* the phone's Back button closes the scanner instead of leaving the screen */
+  try { history.pushState({kbLive:1}, ""); } catch(e){}
+  const onPop = () => { if(!L.closed) finish(true); };
+  window.addEventListener("popstate", onPop);
+
+  try { await video.play(); } catch(e){}
+
+  /* where the picture actually sits inside the video box (it is letterboxed) */
+  const shown = () => {
+    const b = stage.getBoundingClientRect(), vw = video.videoWidth || 1, vh = video.videoHeight || 1;
+    const s = Math.min(b.width / vw, b.height / vh);
+    return {x:(b.width - vw*s) / 2, y:(b.height - vh*s) / 2, w:vw*s, h:vh*s, box:b};
+  };
+  const draw = q => {
+    const b = stage.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    if(overlay.width !== Math.round(b.width * dpr)){ overlay.width = Math.round(b.width * dpr); overlay.height = Math.round(b.height * dpr); }
+    const g = overlay.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, b.width, b.height);
+    if(!q) return;
+    const r = shown();
+    const ready = Math.min(1, L.stable / NEED);
+    g.beginPath();
+    q.forEach((p, i) => { const x = r.x + p.x*r.w, y = r.y + p.y*r.h; i ? g.lineTo(x, y) : g.moveTo(x, y); });
+    g.closePath();
+    g.fillStyle = L.armed ? "rgba(61,214,140," + (0.10 + ready*0.18) + ")" : "rgba(255,255,255,.10)";
+    g.fill();
+    g.lineWidth = 3;
+    g.strokeStyle = L.armed ? (ready >= 1 ? "#3DD68C" : "#FFFFFF") : "rgba(255,255,255,.5)";
+    g.stroke();
+  };
+
+  const small = document.createElement("canvas");
+  const sctx = small.getContext("2d", {willReadFrequently:true});
+  const tick = () => {
+    if(L.closed || L.busy || !video.videoWidth) return;
+    const vw = video.videoWidth, vh = video.videoHeight, f = 360 / Math.max(vw, vh);
+    small.width = Math.round(vw * f); small.height = Math.round(vh * f);
+    sctx.drawImage(video, 0, 0, small.width, small.height);
+    const hit = findPage(small, 360);
+    const ok = hit && hit.fill > 0.8 && hit.cover > 0.12 && hit.cover < 0.97;
+    const q = ok ? hit.quad.map(p => ({x:p.x / small.width, y:p.y / small.height})) : null;
+    L.stable = q && L.last && quadMove(q, L.last) < 0.02 ? L.stable + 1 : 0;
+    L.lost = q ? 0 : L.lost + 1;
+    L.last = q;
+    /* after a photo, wait for the page to change before taking another */
+    if(!L.armed && (L.lost >= 3 || (q && L.taken && quadMove(q, L.taken) > 0.1))) L.armed = true;
+    draw(q);
+    hint.textContent = !q ? "Point at the page — lay it flat with a little table showing round it"
+      : !L.armed ? "Got it. Turn to the next page, or tap Done"
+      : L.auto ? (L.stable >= NEED - 2 ? "Hold still…" : "Hold steady")
+      : "Tap the round button to take it";
+    if(q && L.auto && L.armed && L.stable >= NEED) capture(q);
+  };
+  const timer = setInterval(tick, 200);
+
+  /* tap to focus on a spot, where the camera allows it */
+  stage.addEventListener("click", async e => {
+    const r = shown();
+    const x = (e.clientX - r.box.left - r.x) / r.w, y = (e.clientY - r.box.top - r.y) / r.h;
+    if(x < 0 || y < 0 || x > 1 || y > 1) return;
+    ring.style.left = (e.clientX - r.box.left) + "px";
+    ring.style.top = (e.clientY - r.box.top) + "px";
+    ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go");
+    L.stable = 0;
+    if(caps.pointsOfInterest) await tune({pointsOfInterest:[{x:x, y:y}]});
+    if(focusModes.indexOf("single-shot") >= 0){
+      await tune({focusMode:"single-shot"});
+      setTimeout(() => { if(!L.closed && focusModes.indexOf("continuous") >= 0) tune({focusMode:"continuous"}); }, 3000);
+    }
+  });
+
+  async function capture(q){
+    if(L.busy || L.closed) return;
+    L.busy = true;
+    flash.classList.remove("go"); void flash.offsetWidth; flash.classList.add("go");
+    const aspect = (video.videoWidth || 1) / (video.videoHeight || 1);
+    let blob = null;
+    /* a real photo at the sensor's full size, with its own focus and exposure */
+    try {
+      if(typeof ImageCapture !== "undefined") blob = await new ImageCapture(track).takePhoto();
+    } catch(e){ blob = null; }
+    if(!blob){
+      const c = document.createElement("canvas");
+      c.width = video.videoWidth; c.height = video.videoHeight;
+      c.getContext("2d").drawImage(video, 0, 0);
+      blob = await canvasToBlob(c, "image/jpeg", 0.95);
+    }
+    try {
+      const page = await scanAddBlob(blob, "Scan " + (SC.pages.length + 1), q, aspect);
+      L.count++;
+      thumb.style.backgroundImage = "url(" + page.thumbUrl + ")";
+      thumb.textContent = String(L.count);
+      if(navigator.vibrate) navigator.vibrate(40);
+    } catch(e){ toast("That photo could not be saved — try again"); }
+    L.taken = q || L.last; L.armed = false; L.stable = 0;
+    L.busy = false;
+    chips();
+  }
+
+  function finish(fromBack){
+    if(L.closed) return;
+    L.closed = true;
+    clearInterval(timer);
+    window.removeEventListener("popstate", onPop);
+    stream.getTracks().forEach(t => t.stop());
+    root.remove();
+    document.body.classList.remove("lv-open");
+    if(!fromBack){ try { if(history.state && history.state.kbLive) history.back(); } catch(e){} }
+    if(L.count){ toast(L.count + " " + pluralise(L.count, "page") + " added"); }
+    render();
+  }
+}
+
 function scanMove(i, dir){
   const j = i + dir;
   if(j < 0 || j >= SC.pages.length) return;
@@ -4080,7 +4375,7 @@ function viewScan(){
   const n = SC.pages.length;
   const head = topbar("Scan", n ? n + " " + pluralise(n, "page") + " · stays on this device" : "Documents and photos, to an exact size",
     frag(
-      btn("Camera", {cls:"primary", icon:"camera", onClick:() => camera.click()}),
+      btn("Scan with camera", {cls:"primary", icon:"camera", onClick:() => openLiveScanner(() => camera.click())}),
       btn("Choose photos", {icon:"image", onClick:() => picker.click()}),
       n ? btn("Make a file", {icon:"down", onClick:openScanExport, disabled:SC.adding > 0}) : null));
 
@@ -4717,6 +5012,42 @@ async function runSelfTest(){
   const whole = await pdf.text();
   check("the PDF starts with %PDF and ends with %%EOF", whole.indexOf("%PDF-") === 0 && /%%EOF\s*$/.test(whole));
   check("a two-page PDF declares two pages", /\/Count 2/.test(whole));
+
+  /* a page with a shadow over its right side, black writing, and a blue pen line */
+  const shade = () => {
+    const c = document.createElement("canvas");
+    c.width = 400; c.height = 500;
+    const x = c.getContext("2d");
+    const gr = x.createLinearGradient(0, 0, 400, 0);
+    gr.addColorStop(0, "rgb(245,243,238)"); gr.addColorStop(0.5, "rgb(230,228,222)"); gr.addColorStop(1, "rgb(115,112,108)");
+    x.fillStyle = gr; x.fillRect(0, 0, 400, 500);
+    x.fillStyle = "rgb(30,30,30)";
+    for(let i = 0; i < 8; i++) x.fillRect(20, 40 + i*50, 360, 5);
+    x.fillStyle = "rgb(40,60,170)"; x.fillRect(20, 460, 360, 5);
+    return c;
+  };
+  const px2 = (c, xx, yy) => Array.from(c.getContext("2d").getImageData(xx, yy, 1, 1).data).slice(0, 3);
+  const docC = applyFilter(shade(), "doc");
+  check("Document: paper in the shadow comes out white", px2(docC, 380, 20).every(v => v >= 235), px2(docC, 380, 20));
+  check("Document: writing in the shadow stays dark", px2(docC, 370, 42).every(v => v < 90), px2(docC, 370, 42));
+  check("Document: writing in the light stays dark", px2(docC, 30, 42).every(v => v < 90), px2(docC, 30, 42));
+  const blue = px2(docC, 60, 462);
+  check("Document: blue pen stays blue", blue[2] > blue[0] + 80, blue);
+  const bwC = applyFilter(shade(), "bw");
+  check("Black & white: shadowed paper is pure white, writing black",
+    px2(bwC, 380, 20)[0] === 255 && px2(bwC, 370, 42)[0] === 0, [px2(bwC, 380, 20)[0], px2(bwC, 370, 42)[0]]);
+  const big = document.createElement("canvas");
+  big.width = 3000; big.height = 2000;
+  const bx = big.getContext("2d");
+  bx.fillStyle = "#777"; bx.fillRect(0, 0, 3000, 2000);
+  bx.fillStyle = "#fff"; bx.fillRect(1000, 300, 1000, 1400);
+  bx.fillStyle = "#000";
+  for(let xx = 1000; xx < 2000; xx += 4) bx.fillRect(xx, 300, 2, 1400);
+  const sharp = warpQuad(big, [{x:1000,y:300},{x:2000,y:300},{x:2000,y:1700},{x:1000,y:1700}], 800, 1120);
+  const row = sharp.getContext("2d").getImageData(0, 560, 800, 1).data;
+  let lo = 255, hi = 0;
+  for(let i = 0; i < 800; i++){ lo = Math.min(lo, row[i*4]); hi = Math.max(hi, row[i*4]); }
+  check("fine lines on a page that fills little of the photo stay crisp", hi - lo > 150, [lo, hi]);
 
   out.push(fail ? fail + " FAILED, " + pass + " passed" : "All " + pass + " checks passed.");
 

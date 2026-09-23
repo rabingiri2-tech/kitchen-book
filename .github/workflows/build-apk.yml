@@ -62,6 +62,15 @@ jobs:
       - name: Create the Android project
         run: npx cap add android
 
+      # The live scanner opens the camera inside the app, which Android only
+      # allows when the app declares it. Android asks the user the first time.
+      - name: Camera permission for the live scanner
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's#</manifest>#    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n</manifest>#' "$M"
+          grep -q "android.permission.CAMERA" "$M"
+          grep -n "uses-permission\|uses-feature" "$M"
+
       # The launcher icons are drawn ahead of time and kept in android-res/,
       # so the build needs no image tools. Copy them over the template ones.
       - name: Launcher icons
