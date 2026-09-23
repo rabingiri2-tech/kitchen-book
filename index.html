@@ -2469,8 +2469,44 @@ function geminiError(status, raw){
   if(status === 404) return {code:"model", message:msg};
   if(status === 413) return {code:"too_big", message:msg};
   if(status === 429) return {code:"rate_limited", message:msg};
+  if(status === 500 || status === 503) return {code:"busy", message:msg};
   if(status === 400) return {code:"invalid_request", message:msg};
   return {code:"upstream_error", message:msg};
+}
+/* When the chosen model is busy (Google says "high demand") or out of free
+   quota, the next one in this list is asked instead. Quotas are per model on
+   the free tier, so a lighter model usually still has room. */
+const GEMINI_BACKUPS = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"];
+const wait = (ms, signal) => new Promise((ok, fail) => {
+  const t = setTimeout(ok, ms);
+  if(signal) signal.addEventListener("abort", () => { clearTimeout(t); fail({name:"AbortError"}); }, {once:true});
+});
+/* One model, with the two quiet retries: key in the address for keys refused
+   as a header, and plain JSON for models that reject the schema. */
+async function askGeminiModel(model, body, key, signal){
+  const url = GEMINI_URL + encodeURIComponent(model) + ":generateContent";
+  const send = (b, viaUrl) => fetch(url + (viaUrl ? "?key=" + encodeURIComponent(key) : ""), {
+    method:"POST", signal:signal,
+    headers: viaUrl ? {"content-type":"application/json"} : {"content-type":"application/json", "x-goog-api-key":key},
+    body:JSON.stringify(b)
+  });
+  let res = await send(body, false);
+  /* Newer "AQ." keys are refused on some routes when sent as a header; Google
+     also accepts the key in the address, so try that once before giving up. */
+  if(res.status === 401 || res.status === 403){
+    const viaUrl = await send(body, true);
+    if(viaUrl.ok || (viaUrl.status !== 401 && viaUrl.status !== 403)) res = viaUrl;
+  }
+  /* If this model rejects the schema, ask again with plain JSON instead. */
+  if(res.status === 400 && body.generationConfig.responseSchema){
+    const raw = await res.clone().text();
+    if(/schema|unknown name|invalid json payload/i.test(raw)){
+      const plain = JSON.parse(JSON.stringify(body));
+      delete plain.generationConfig.responseSchema;
+      res = await send(plain, false);
+    }
+  }
+  return res;
 }
 async function callGemini(prompt, opts){
   const o = opts || {};
@@ -2483,33 +2519,28 @@ async function callGemini(prompt, opts){
     body.generationConfig.responseMimeType = "application/json";
     if(o.schema) body.generationConfig.responseSchema = toGeminiSchema(o.schema);
   }
-  const send = b => fetch(GEMINI_URL + encodeURIComponent(AI.geminiModel()) + ":generateContent", {
-    method:"POST", signal:o.signal,
-    headers:{"content-type":"application/json", "x-goog-api-key":key},
-    body:JSON.stringify(b)
-  });
-  let res;
+  const models = [AI.geminiModel()].concat(GEMINI_BACKUPS.filter(m => m !== AI.geminiModel()));
+  let res = null, lastErr = null;
   try {
-    res = await send(body);
-    /* Newer "AQ." keys are refused on some routes when sent as a header; Google
-       also accepts the key in the address, so try that once before giving up. */
-    if(res.status === 401 || res.status === 403){
-      const viaUrl = await fetch(GEMINI_URL + encodeURIComponent(AI.geminiModel()) + ":generateContent?key=" + encodeURIComponent(key), {
-        method:"POST", signal:o.signal, headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
-      if(viaUrl.ok || (viaUrl.status !== 401 && viaUrl.status !== 403)) res = viaUrl;
-    }
-    /* If this model rejects the schema, ask again with plain JSON instead. */
-    if(res.status === 400 && body.generationConfig.responseSchema){
-      const raw = await res.clone().text();
-      if(/schema|unknown name|invalid json payload/i.test(raw)){
-        delete body.generationConfig.responseSchema;
-        res = await send(body);
+    for(const model of models){
+      /* busy: wait a moment and ask the same model once more, then move on */
+      for(let attempt = 0; attempt < 2; attempt++){
+        if(attempt || model !== models[0])
+          (o.onStatus || toast)(attempt ? "Gemini is busy — trying again…" : "Trying " + model + " instead…");
+        res = await askGeminiModel(model, body, key, o.signal);
+        if(res.status !== 500 && res.status !== 503) break;
+        if(attempt === 0) await wait(2000, o.signal);
       }
+      if(res.ok){ AI.lastModel = model; break; }
+      lastErr = geminiError(res.status, await res.text().catch(() => ""));
+      /* busy, out of quota, or no such model: try the next one; anything else is final */
+      if(!/^(busy|rate_limited|model)$/.test(lastErr.code)) throw lastErr;
     }
   } catch(e){
+    if(e && e.code) throw e;
     throw {code: e && e.name === "AbortError" ? "cancelled" : "offline"};
   }
-  if(!res.ok) throw geminiError(res.status, await res.text().catch(() => ""));
+  if(!res || !res.ok) throw lastErr || {code:"upstream_error"};
   const data = await res.json();
   if(data.promptFeedback && data.promptFeedback.blockReason) throw {code:"refused"};
   const cand = (data.candidates || [])[0];
@@ -2567,7 +2598,7 @@ function aiTestRow(){
       aiTest = {busy:true}; render();
       try {
         const reply = await callAI("Reply with only the word OK.", {});
-        aiTest = {ok:true, text:"It works — " + AI.label() + " replied “" + String(reply).trim().slice(0, 40) + "”."};
+        aiTest = {ok:true, text:"It works — " + AI.label() + " replied “" + String(reply).trim().slice(0, 40) + "”" + (AI.provider() === "gemini" && AI.lastModel ? " (" + AI.lastModel + ")" : "") + "."};
       } catch(e){
         aiTest = {ok:false, text:sampleErrorText(e)};
       }
@@ -2585,6 +2616,7 @@ function sampleErrorText(e){
     sdk_unavailable: "Could not load the Claude library — you may be offline. Everything else still works.",
     offline: "No connection to " + who + ". The rest of the app works offline.",
     rate_limited: who + " says that is too many requests for now. On the free tier, wait a minute and try again.",
+    busy: who + " is very busy right now — every model was tried. Wait a minute or two and try again.",
     refused: who + " would not answer that one. Try rewording it.",
     invalid_json: "The answer came back in the wrong shape. Try again.",
     invalid_request: who + " could not take that request. Try a smaller file or less text.",
