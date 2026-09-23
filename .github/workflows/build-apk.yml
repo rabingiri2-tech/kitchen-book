@@ -27,13 +27,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -65,7 +65,12 @@ jobs:
       - name: Launcher icons
         run: |
           set -e
+          # newer runner images no longer ship ImageMagick
+          if ! command -v magick >/dev/null && ! command -v convert >/dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick > /dev/null
+          fi
           IM="magick"; command -v magick >/dev/null || IM="convert"
+          $IM -version | head -1
           ICON=assets/icon.png
           RES=android/app/src/main/res
           BG="#6E2E58"
