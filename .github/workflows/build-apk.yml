@@ -59,9 +59,49 @@ jobs:
       - name: Create the Android project
         run: npx cap add android
 
+      # Build the launcher icons from assets/icon.png ourselves. Doing this with
+      # ImageMagick rather than a generator means a failure here is a build
+      # failure, not a silently stock Android icon.
       - name: Launcher icons
-        continue-on-error: true
-        run: npx @capacitor/assets@3 generate --android --iconBackgroundColor "#6E2E58" --splashBackgroundColor "#EFEFEC"
+        run: |
+          set -e
+          IM="magick"; command -v magick >/dev/null || IM="convert"
+          ICON=assets/icon.png
+          RES=android/app/src/main/res
+          BG="#6E2E58"
+          test -f "$ICON"
+          # square, round, and the adaptive-icon pair, at every density
+          set -- "mdpi 48 108" "hdpi 72 162" "xhdpi 96 216" "xxhdpi 144 324" "xxxhdpi 192 432"
+          for row in "$@"; do
+            set -- $row; D=$1; S=$2; A=$3
+            DIR="$RES/mipmap-$D"; mkdir -p "$DIR"
+            $IM "$ICON" -resize ${S}x${S} "$DIR/ic_launcher.png"
+            $IM "$ICON" -resize ${S}x${S} \
+              \( -size ${S}x${S} xc:none -fill white -draw "circle $((S/2)),$((S/2)) $((S/2)),0" \) \
+              -alpha set -compose DstIn -composite "$DIR/ic_launcher_round.png"
+            $IM -size ${A}x${A} "xc:$BG" "$DIR/ic_launcher_background.png"
+            # the mark sits inside the adaptive safe zone, on transparency
+            INNER=$(( A * 62 / 100 ))
+            $IM -size ${A}x${A} xc:none \
+              \( "$ICON" -resize ${INNER}x${INNER} \) -gravity center -composite \
+              "$DIR/ic_launcher_foreground.png"
+          done
+          # point the adaptive icon at those files, and drop the template vectors
+          mkdir -p "$RES/mipmap-anydpi-v26"
+          for N in ic_launcher ic_launcher_round; do
+            cat > "$RES/mipmap-anydpi-v26/$N.xml" <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@mipmap/ic_launcher_background"/>
+              <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+          </adaptive-icon>
+XML
+            sed -i 's/^          //' "$RES/mipmap-anydpi-v26/$N.xml"
+          done
+          rm -f "$RES/drawable-v24/ic_launcher_foreground.xml" "$RES/drawable/ic_launcher_background.xml"
+          echo "--- icons written ---"
+          find "$RES" -name "ic_launcher*" -size -1k -print
+          echo "(any file listed above is suspiciously small)"
 
       - name: Copy the app into the Android project
         run: npx cap sync android

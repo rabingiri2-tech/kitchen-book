@@ -1,9 +1,9 @@
 /* Kitchen Book offline cache.
    The app shell is cached on install so the book opens with no signal.
-   Google Fonts are cached the first time they are fetched. Calls to
-   api.anthropic.com and the SDK on jsdelivr are never cached — those
+   Google Fonts are cached the first time they are fetched. Calls to the
+   AI (Google Gemini, api.anthropic.com, the SDK on jsdelivr) are never cached — those
    need a live connection anyway. */
-const VERSION = "kitchen-book-v2";
+const VERSION = "kitchen-book-v3";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png"];
 
 self.addEventListener("install", event => {
@@ -28,7 +28,8 @@ self.addEventListener("fetch", event => {
   const req = event.request;
   if(req.method !== "GET") return;
   const url = new URL(req.url);
-  if(url.hostname === "api.anthropic.com" || url.hostname === "cdn.jsdelivr.net") return;
+  if(url.hostname === "api.anthropic.com" || url.hostname === "cdn.jsdelivr.net" ||
+     url.hostname === "generativelanguage.googleapis.com") return;
 
   /* Page loads: try the network, fall back to the cached shell. */
   if(req.mode === "navigate"){

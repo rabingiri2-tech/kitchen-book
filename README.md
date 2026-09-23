@@ -18,11 +18,23 @@ here on GitHub.
   ready-to-send order per supplier in whole packs.
 - **Price history.** Old quotes are kept. Ingredients and recipes show how their
   cost moved over the last month; recipes that moved more than 10% are flagged.
-- **Scan a bill.** Photograph an invoice or paste its text and Claude turns each
+- **Scan a bill.** Photograph an invoice or paste its text and the AI turns each
   line into a pack size and price for you to check before saving.
-- **Claude features** (write a recipe, ideas, paste a recipe, cheaper swaps, bill
-  scanning) need an Anthropic API key entered in Settings. Everything else works
-  offline with no key and no account.
+- **Import recipes from files.** Word (.docx), Excel (.xlsx), CSV, text, PDF or a
+  photo. An Excel/CSV sheet with a *Recipe* column and an *Ingredient* column
+  (Quantity, Unit, Servings, Method optional) is read directly, with no AI. Other
+  files are read by the AI; you tick which recipes to keep.
+- **Scan documents.** Photograph a page, drag its corners, pick a filter, and save
+  it as a PDF (all pages), JPG or PNG at A4, A5, Letter, passport or any custom
+  size, and under a size limit (50 KB to 2 MB). In the Android app, files go to
+  Documents › KitchenBook or the share sheet.
+- **Search** on every list: today's ideas, recipes, ingredients, suppliers, the
+  shopping picker and scanned pages.
+- **AI features** (write a recipe, ideas, import, cheaper swaps, bill scanning) use
+  **Google Gemini** with a free key from https://aistudio.google.com/apikey, or
+  Anthropic Claude with a paid key. Choose under Settings → AI features. On
+  Gemini's free tier Google may use what you send to improve its products.
+  Everything else works offline with no key and no account.
 
 Data lives on the device. Move it between devices with Settings → Download a
 backup / Restore from backup.
@@ -44,6 +56,7 @@ backup / Restore from backup.
 
 ## Checking the maths
 
-Open the app with `?selftest` on the end of the address to run 74 checks covering
+Open the app with `?selftest` on the end of the address to run 103 checks covering
 unit conversion, unit pricing, waste, scaling, food-cost percentages, price
-history, pantry stock, whole-pack orders and supplier sourcing.
+history, pantry stock, whole-pack orders, supplier sourcing, reading Word /
+Excel / CSV files, and the scanner's paper sizes, edge finding, size limits and PDFs.

@@ -1,8 +1,12 @@
 {
   "name": "kitchen-book",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Kitchen Book — recipes costed from your own supplier prices",
+  "dependencies": {
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/share": "^8.0.2"
+  },
   "devDependencies": {
     "@capacitor/android": "^8.5.2",
     "@capacitor/cli": "^8.5.2",

@@ -185,6 +185,31 @@ label.f>input,label.f>select,label.f>textarea{font-weight:400;color:var(--ink);l
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:13.5px;font-weight:500;z-index:80;box-shadow:var(--shadow)}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .split>*,.stack{min-width:0}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{padding:6px 12px;border-radius:999px;border:1px solid var(--line-2);background:var(--card);color:var(--ink-2);cursor:pointer;font-size:13px;font-weight:600;font-family:var(--body)}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.searchbox{position:relative;max-width:360px;margin-bottom:16px}
+.searchbox .ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none}
+.searchbox svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.searchbox input{padding-left:34px}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sc-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.sc-thumb{aspect-ratio:3/4;background:var(--sunk);display:grid;place-items:center;cursor:pointer;position:relative;border:0;padding:6px;width:100%}
+.sc-thumb img{width:100%;height:100%;object-fit:contain;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.sc-num{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.62);color:#fff;font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:999px}
+.sc-name{font-weight:600;font-size:13px;padding:8px 10px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-date{font-family:var(--mono);font-size:11px;color:var(--faint);padding:0 10px 6px}
+.sc-tools{display:flex;gap:2px;padding:4px;border-top:1px solid var(--line)}
+.sc-tools button{flex:1;background:transparent;border:0;color:var(--muted);padding:7px 2px;border-radius:5px;cursor:pointer;font-size:12.5px;font-weight:600}
+.sc-tools button:hover:not([disabled]){background:var(--sunk);color:var(--ink)}
+.sc-tools button[disabled]{opacity:.35;cursor:default}
+.sc-stage{position:relative;background:#141316;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;touch-action:none;display:grid;place-items:center;min-height:300px}
+.sc-stage canvas{display:block;max-width:100%;touch-action:none}
+.sc-overlay{position:absolute;inset:0}
+.sc-handle{position:absolute;width:32px;height:32px;margin:-16px 0 0 -16px;border-radius:50%;border:2px solid #E7A6D0;background:rgba(231,166,208,.25);cursor:grab;touch-action:none}
+.sc-handle:active{cursor:grabbing;background:rgba(231,166,208,.45)}
+.sc-mag{position:absolute;top:10px;width:104px;height:104px;border-radius:50%;border:2px solid #E7A6D0;overflow:hidden;pointer-events:none;background:#000;display:none;z-index:5}
+.sc-mag canvas{width:100%;height:100%}
 .linkbtn{border:0;background:none;padding:0;color:var(--accent);font:inherit;text-decoration:underline;cursor:pointer}
 .ico{display:inline-flex;align-items:center;flex:none}
 code{font-family:var(--mono);font-size:12.5px;background:var(--sunk);padding:1px 5px;border-radius:4px}
@@ -210,6 +235,8 @@ details summary::-webkit-details-marker{color:var(--faint)}
   .mobnav a.on{color:var(--accent)}
   .mobnav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .topbar h1{font-size:23px}
+  .sc-grid{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+  .mobnav a{font-size:10px}
 }
 </style>
 </head>
@@ -599,7 +626,7 @@ const S = {
   ix:{sup:{}, ing:{}},
   route:{name:"today", id:null},
   modal:null,
-  ui:{search:"", tag:"", scale:1, shopping:{recipes:{}, extras:[]}}
+  ui:{search:"", qIng:"", qSup:"", qShop:"", qScan:"", qToday:"", tag:"", scale:1, shopping:{recipes:{}, extras:[]}}
 };
 
 function reindex(){
@@ -670,6 +697,7 @@ const ICONS = {
   shopping:'<path d="M4 8h16l-1.4 11.2A2 2 0 0 1 16.6 21H7.4a2 2 0 0 1-2-1.8z"/><path d="M9 8 12 3l3 5M10 12v5M14 12v5"/>',
   settings:'<path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h8M16 17h4"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="14" cy="17" r="2"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
   spark:'<path d="M12 3.5 13.9 9l5.6 2-5.6 2-1.9 5.5L10.1 13 4.5 11l5.6-2z"/><path d="M18.5 3.5v3M17 5h3"/>',
   trash:'<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 12.5h9l1-12.5"/>',
   back:'<path d="M15 5l-7 7 7 7"/>',
@@ -681,7 +709,13 @@ const ICONS = {
   check:'<path d="M5 12.5l4.5 4.5L19 6.5"/>',
   x:'<path d="M6 6l12 12M18 6L6 18"/>',
   copy:'<path d="M9 9h11v11H9zM4 15V4h11"/>',
-  stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>'
+  stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  camera:'<path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.4"/>',
+  image:'<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M5 17l4.5-4.5 3.5 3 2.5-2L19 17"/>',
+  rotate:'<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.5h-4.5"/>',
+  wand:'<path d="M5 19L16 8"/><path d="M14.5 4.5 15.6 7l2.5 1.1-2.5 1.1-1.1 2.5-1.1-2.5L10.9 8.1l2.5-1.1z"/>',
+  frame:'<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/>',
+  share:'<path d="M12 15V4M8.5 7.5 12 4l3.5 3.5"/><path d="M5 13v6h14v-6"/>'
 };
 function ic(name){
   return el("span", {class:"ico", html:'<svg viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[name] || "") + "</svg>"});
@@ -720,12 +754,14 @@ const NAV = [
   {key:"ingredients", label:"Ingredients", short:"Items",  icon:"ingredients"},
   {key:"suppliers",   label:"Suppliers",   short:"Shops",  icon:"suppliers"},
   {key:"shopping",    label:"Shopping",    short:"List",   icon:"shopping"},
+  {key:"scan",        label:"Scan",        short:"Scan",   icon:"camera"},
   {key:"settings",    label:"Settings",    short:"Setup",  icon:"settings"}
 ];
 function navCount(key){
   if(key === "recipes") return S.recipes.length || "";
   if(key === "ingredients") return S.ingredients.length || "";
   if(key === "suppliers") return S.suppliers.length || "";
+  if(key === "scan") return SC.pages.length || "";
   if(key === "today"){ const f = feedFor(todayISO()); return f && f.items ? f.items.length : ""; }
   return "";
 }
@@ -740,7 +776,7 @@ function render(){
   const root = document.getElementById("root");
   const view = ({
     today:viewToday, recipes:viewRecipes, ingredients:viewIngredients,
-    suppliers:viewSuppliers, shopping:viewShopping, settings:viewSettings
+    suppliers:viewSuppliers, shopping:viewShopping, scan:viewScan, settings:viewSettings
   }[S.route.name] || viewToday)();
 
   root.textContent = "";
@@ -769,6 +805,23 @@ function render(){
       if(caret != null && again.setSelectionRange){ try{ again.setSelectionRange(caret, caret); }catch(e){} }
     }
   }
+}
+
+/* One search box, used by every list in the app. */
+function searchBox(id, value, placeholder, onChange){
+  return el("div", {class:"searchbox"}, ic("search"),
+    el("input", {type:"search", id:id, placeholder:placeholder, value:value || "", autocomplete:"off",
+      oninput:e => { onChange(e.target.value); render(); }}));
+}
+/* Does any of these fields contain what was typed? */
+function hits(q, fields){
+  q = String(q || "").trim().toLowerCase();
+  if(!q) return true;
+  const hay = fields.map(f => Array.isArray(f) ? f.join(" ") : String(f == null ? "" : f)).join(" ").toLowerCase();
+  return q.split(/\s+/).every(word => hay.indexOf(word) >= 0);
+}
+function noMatch(what){
+  return empty("Nothing matches that", "No " + what + " contain every word you typed. Try fewer words.");
 }
 
 function topbar(title, sub, actions){
@@ -942,7 +995,7 @@ function viewToday(){
   const older = recentFeed().filter(f => f.id !== todayISO()).slice(0, 6);
   const acts = frag(
     btn("Write me a recipe", {icon:"spark", cls:"primary", onClick:openWriteRecipe, disabled:!S.sampleReady,
-      title: S.sampleReady ? "" : "Claude is not available in this view"}),
+      title: S.sampleReady ? "" : "Add an AI key under Settings first"}),
     btn("More ideas now", {icon:"spark", onClick:openIdeaSearch, disabled:!S.sampleReady})
   );
 
@@ -951,8 +1004,22 @@ function viewToday(){
 
   if(!S.sampleReady && S.loaded)
     out.append(el("div", {class:"banner"}, el("div", null,
-      el("b", null, "Claude features are off. "),
-      "Add your Anthropic API key under Settings to switch on recipe writing and ideas. Everything else works as normal.")));
+      el("b", null, "AI features are off. "),
+      "Add a free Gemini key under Settings to switch on recipe writing, file import and bill scanning. Everything else works as normal.")));
+
+  out.append(searchBox("today-search", S.ui.qToday, "Search ideas and recipes", v => S.ui.qToday = v));
+  if(String(S.ui.qToday || "").trim()){
+    const q = S.ui.qToday;
+    const ideaHits = [];
+    recentFeed().forEach(day => (day.items || []).forEach((item, i) => {
+      if(hits(q, [item.title, item.cuisine, item.summary, item.site, item.ingredients, item.whyItFits])) ideaHits.push(feedItem(day, i, item));
+    }));
+    const recipeHits = S.recipes.filter(r => hits(q, [r.name, r.cuisine, r.tags, r.notes, (r.lines || []).map(l => l.rawName)]));
+    if(!ideaHits.length && !recipeHits.length){ out.append(noMatch("ideas or recipes")); return out; }
+    if(ideaHits.length){ out.append(section("Ideas", el("span", {class:"eyebrow"}, String(ideaHits.length)))); out.append(el("div", {class:"panel"}, ideaHits)); }
+    if(recipeHits.length){ out.append(section("Your recipes", el("span", {class:"eyebrow"}, String(recipeHits.length)))); out.append(el("div", {class:"cards"}, recipeHits.map(recipeCard))); }
+    return out;
+  }
 
   const alerts = costAlerts();
   if(alerts.length){
@@ -1048,27 +1115,22 @@ function recipeCard(r){
 
 function viewRecipes(){
   if(S.route.id) return viewRecipeDetail(S.route.id);
-  const q = S.ui.search.toLowerCase();
-  const list = S.recipes.filter(r => {
-    if(!q) return true;
-    return (r.name || "").toLowerCase().indexOf(q) >= 0
-      || (r.cuisine || "").toLowerCase().indexOf(q) >= 0
-      || (r.tags || []).join(" ").toLowerCase().indexOf(q) >= 0
-      || (r.lines || []).some(l => (l.rawName || "").toLowerCase().indexOf(q) >= 0);
-  }).sort((a,b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0) || (a.name || "").localeCompare(b.name || ""));
+  const list = S.recipes.filter(r => hits(S.ui.search, [
+    r.name, r.cuisine, r.tags, r.notes,
+    (r.lines || []).map(l => l.rawName || ((S.ix.ing[l.ingredientId] || {}).name) || "")
+  ])).sort((a,b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0) || (a.name || "").localeCompare(b.name || ""));
 
   const out = el("div", null,
     topbar("Recipes", S.recipes.length + " " + pluralise(S.recipes.length, "recipe") + " on the shelf", frag(
+      btn("Import a file", {icon:"down", onClick:openFileImport}),
       btn("Write me one", {icon:"spark", onClick:openWriteRecipe, disabled:!S.sampleReady}),
       btn("Paste a recipe", {icon:"copy", onClick:openImportRecipe, disabled:!S.sampleReady}),
       btn("New recipe", {cls:"primary", icon:"plus", onClick:() => openRecipeEditor(null)}))),
-    el("div", {style:"max-width:340px;margin-bottom:16px"},
-      el("input", {type:"search", id:"recipe-search", placeholder:"Search recipes and ingredients", value:S.ui.search,
-        oninput:e => { S.ui.search = e.target.value; render(); }})));
+    searchBox("recipe-search", S.ui.search, "Search recipes, ingredients, tags", v => S.ui.search = v));
 
   if(!list.length){
     out.append(empty(S.recipes.length ? "Nothing matches that" : "No recipes yet",
-      S.recipes.length ? "Try a different word." : "Write one with Claude, paste one you already have, or start from scratch.",
+      S.recipes.length ? "Try a different word." : "Import a file, write one with AI, paste one you already have, or start from scratch.",
       btn("New recipe", {cls:"primary", icon:"plus", onClick:() => openRecipeEditor(null)})));
     return out;
   }
@@ -1235,13 +1297,19 @@ function viewIngredients(){
       btn("New ingredient", {cls:"primary", icon:"plus", onClick:() => openIngredientEditor(null)})));
     return out;
   }
+  out.append(searchBox("ing-search", S.ui.qIng, "Search ingredients, categories, suppliers", v => S.ui.qIng = v));
+  const shown = list.filter(i => {
+    const best = bestPriceFor(i.id);
+    return hits(S.ui.qIng, [i.name, i.category, i.tags, i.aliases, best && best.supplier && best.supplier.name]);
+  });
+  if(!shown.length){ out.append(noMatch("ingredients")); return out; }
   out.append(el("div", {class:"hint", style:"margin:-6px 0 12px"},
     "Type what you have in the In stock column. The shopping list takes it off, and recipes can be sorted by what you can already cook."));
   out.append(el("div", {class:"wrap"}, el("table", {class:"sheet"},
     el("thead", null, el("tr", null,
       el("th", null, "Ingredient"), el("th", {class:"col-cat"}, "Category"),
       el("th", {class:"num"}, "Best price"), el("th", null, "From"), el("th", null, "In stock"))),
-    el("tbody", null, list.map(i => {
+    el("tbody", null, shown.map(i => {
       const best = bestPriceFor(i.id);
       return el("tr", {style:"cursor:pointer", onclick:() => go("ingredients/" + i.id)},
         el("td", null, el("div", {class:"name"}, i.name), (i.tags || []).length ? el("div", {class:"sub2"}, i.tags.join(", ")) : null),
@@ -1388,7 +1456,14 @@ function viewSuppliers(){
       btn("New supplier", {cls:"primary", icon:"plus", onClick:() => openSupplierEditor(null)})));
     return out;
   }
-  out.append(el("div", {class:"cards"}, list.map(s => {
+  out.append(searchBox("sup-search", S.ui.qSup, "Search suppliers, or what they sell", v => S.ui.qSup = v));
+  const shownSup = list.filter(s => {
+    const c = s.contact || {};
+    const sells = supplierItems(s.id).map(p => (S.ix.ing[p.ingredientId] || {}).name || "");
+    return hits(S.ui.qSup, [s.name, c.phone, c.email, c.address, c.website, s.notes, s.deliveryDays, sells]);
+  });
+  if(!shownSup.length){ out.append(noMatch("suppliers")); return out; }
+  out.append(el("div", {class:"cards"}, shownSup.map(s => {
     const items = supplierItems(s.id).length;
     const wins  = cheapestOnCount(s.id);
     return el("button", {class:"rcard", onclick:() => go("suppliers/" + s.id)},
@@ -1546,8 +1621,10 @@ function viewShopping(){
 
   const picker = el("div", {class:"panel"},
     el("h3", null, "Cooking what?"),
+    S.recipes.length > 1 ? searchBox("shop-search", S.ui.qShop, "Find a recipe", v => S.ui.qShop = v) : null,
     S.recipes.length
-      ? el("div", null, S.recipes.slice().sort((a,b) => (a.name || "").localeCompare(b.name || "")).map(r =>
+      ? el("div", null, S.recipes.filter(r => hits(S.ui.qShop, [r.name, r.cuisine, r.tags]) || num(S.shopping.recipes[r.id]) > 0)
+          .sort((a,b) => (a.name || "").localeCompare(b.name || "")).map(r =>
           el("div", {class:"kv"},
             el("span", null, r.name),
             el("input", {type:"number", min:"0", step:"1", style:"width:74px", value:String(num(S.shopping.recipes[r.id]) || 0),
@@ -1666,7 +1743,7 @@ function viewSettings(){
         el("div", {class:"panel"},
           el("h3", null, "What to look for"),
           el("div", {class:"hint", style:"margin-bottom:12px"},
-            "This steers everything Claude writes for you."),
+            "This steers everything the AI writes for you."),
           el("div", {class:"grid2"},
             field("Cuisines you like", textInput(t.cuisines, v => saveTaste({cuisines:v}), {id:"t-cui", placeholder:"Nepali, Thai, Italian"})),
             field("Diet", textInput(t.diet, v => saveTaste({diet:v}), {id:"t-diet", placeholder:"vegetarian, low salt"}))),
@@ -1702,20 +1779,44 @@ function viewSettings(){
             "It does not travel by itself — to move it, download a backup here and restore it on the other device.")),
 
         el("div", {class:"panel"},
-          el("h3", null, "Claude features"),
-          el("div", {class:"keyrow"},
-            field("Anthropic API key",
-              el("input", {type:"password", id:"api-key", placeholder:"sk-ant-...", autocomplete:"off",
-                value:AI.key(), onchange:e => AI.setKey(e.target.value)}))),
-          el("div", {class:"hint", style:"margin-top:8px"},
+          el("h3", null, "AI features"),
+          el("div", {class:"eyebrow", style:"margin-bottom:6px"}, "Which AI"),
+          el("div", {class:"seg"},
+            [["gemini", "Google Gemini · free tier"], ["claude", "Anthropic Claude · paid"]].map(p =>
+              el("button", {type:"button", class: AI.provider() === p[0] ? "on" : "", onclick:() => AI.setProvider(p[0])}, p[1]))),
+          AI.provider() === "gemini"
+            ? frag(
+                el("div", {class:"keyrow", style:"margin-top:12px"},
+                  field("Gemini API key", el("input", {type:"password", id:"gemini-key", placeholder:"AIza…", autocomplete:"off",
+                    value:AI.geminiKey(), onchange:e => AI.setGeminiKey(e.target.value)}))),
+                el("div", {class:"hint", style:"margin-top:8px"},
+                  "Free key: ", el("a", {href:"https://aistudio.google.com/apikey", target:"_blank", rel:"noopener noreferrer"}, "aistudio.google.com/apikey"),
+                  " — sign in with a Google account, press Create API key, paste it here."),
+                el("div", {style:"margin-top:12px"},
+                  field("Model", el("input", {type:"text", id:"gemini-model", placeholder:GEMINI_DEFAULT_MODEL,
+                    value:AI.get(GEMINI_MODEL_STORE), onchange:e => { AI.setGeminiModel(e.target.value); toast("Model saved"); }}),
+                    "Leave empty for " + GEMINI_DEFAULT_MODEL + ", which follows Google's newest Flash model by itself.")),
+                el("div", {class:"banner", style:"margin:12px 0 0"}, el("div", null,
+                  el("b", null, "Free tier and privacy. "),
+                  "On Google's free tier, what you send may be used to improve Google's products. ",
+                  "Bills and recipes you scan go to Google. A paid Gemini key, or Claude, keeps it private.")))
+            : frag(
+                el("div", {class:"keyrow", style:"margin-top:12px"},
+                  field("Anthropic API key", el("input", {type:"password", id:"api-key", placeholder:"sk-ant-…", autocomplete:"off",
+                    value:AI.claudeKey(), onchange:e => AI.setKey(e.target.value)}))),
+                el("div", {class:"hint", style:"margin-top:8px"},
+                  "Get one at console.anthropic.com. Asking Claude costs money on your own account.")),
+          el("div", {class:"hint", style:"margin-top:12px"},
             AI.key()
-              ? "Key saved. Write me a recipe, Ideas now, Paste a recipe, Cheaper swaps and Scan a bill are switched on."
-              : "Without a key those buttons stay off; everything else works. Get one at console.anthropic.com, then paste it here."),
+              ? "Key saved. Write me a recipe, Ideas now, Import a file, Cheaper swaps and Scan a bill are switched on."
+              : "Without a key those buttons stay off. Everything else works."),
           el("div", {class:"hint", style:"margin-top:6px"},
-            "The key is kept in this browser only and is sent to api.anthropic.com and nowhere else. ",
-            "Asking Claude costs money on your own account.",
-            AI.key() ? el("div", {style:"margin-top:8px"},
-              btn("Forget the key", {cls:"danger sm", onClick:() => { AI.setKey(""); toast("Key removed"); }})) : null)),
+            "Keys are kept in this browser only and sent to that company's API and nowhere else."),
+          AI.key() ? el("div", {style:"margin-top:8px"},
+            btn("Forget this key", {cls:"danger sm", onClick:() => {
+              if(AI.provider() === "claude") AI.setKey(""); else AI.setGeminiKey("");
+              toast("Key removed");
+            }})) : null),
         el("div", {class:"panel"},
           el("h3", null, "Where new recipes come from"),
           el("div", {class:"kv"}, el("span", null, "Last batch filed"), el("b", null, lastFeed ? niceDate(lastFeed.id) : "none yet")),
@@ -2130,7 +2231,7 @@ function openBillScan(supplierId){
         preview ? el("img", {src:preview, alt:"The bill", style:"max-height:220px;max-width:100%;align-self:flex-start;border:1px solid var(--line);border-radius:6px;object-fit:contain"}) : null,
         field(S.imagesOk ? "Or paste the bill's text" : "Paste the bill's text",
           el("textarea", {style:"min-height:110px", placeholder:"Plain flour 25kg   1 x 22.50", oninput:e => text = e.target.value}, text)),
-        el("div", {class:"hint"}, "Claude reads each line into a pack size and a price. Nothing is saved until you have checked every row."));
+        el("div", {class:"hint"}, "The AI reads each line into a pack size and a price. Nothing is saved until you have checked every row."));
     },
     footer: () => phase === "review"
       ? frag(btn("Back", {cls:"ghost", onClick:() => { phase = "input"; renderModal(); }}),
@@ -2174,27 +2275,51 @@ function openCooked(r){
 S.shopping = {recipes:{}, extras:[]};
 let sampleFn = null;
 
-/* ---- talking to Claude ----------------------------------------------
-   Outside claude.ai there is no sample capability, so this calls the
-   Anthropic API with the key you enter in Settings. The key is kept in
-   this browser only and is sent to api.anthropic.com and nowhere else.
-   The shim below keeps the same shape the rest of the app already calls:
-   sampleFn(prompt, opts) -> {text}   and   sampleFn.json(prompt, opts). */
+/* ---- talking to an AI -------------------------------------------------
+   Two providers, picked in Settings: Google Gemini (has a free tier) or
+   Anthropic Claude (paid). Each key is kept in this browser only and is
+   sent to that provider's API and nowhere else. The rest of the app calls
+   the same shim whichever is chosen:
+     sampleFn(prompt, opts) -> {text}      sampleFn.json(prompt, opts) -> value
+   opts: signal, schema, onText, images (photos), files (photos or PDFs). */
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.124.0/+esm";
 const KEY_STORE = LS + "apikey";
+const GEMINI_KEY_STORE = LS + "geminikey";
+const GEMINI_MODEL_STORE = LS + "geminimodel";
+const PROVIDER_STORE = LS + "aiprovider";
 const MODEL = "claude-opus-5";
+/* An alias Google moves forward with each release, so the app keeps working
+   as model versions change. Settings can override it. */
+const GEMINI_DEFAULT_MODEL = "gemini-flash-latest";
+const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
 
 const AI = {
-  _client:null, _forKey:null,
-  key(){ try { return localStorage.getItem(KEY_STORE) || ""; } catch(e){ return ""; } },
-  setKey(v){
-    try { v ? localStorage.setItem(KEY_STORE, v.trim()) : localStorage.removeItem(KEY_STORE); } catch(e){}
-    this._client = null;
-    S.sampleReady = S.imagesOk = !!this.key();
-    render();
+  _client:null, _forKey:null, _mem:{},
+  /* Where the browser refuses storage, the key lasts until the page closes. */
+  get(k){ try { const v = localStorage.getItem(k); if(v != null) return v; } catch(e){} return this._mem[k] || ""; },
+  put(k, v){
+    v = v ? String(v).trim() : "";
+    this._mem[k] = v;
+    try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch(e){}
   },
+  provider(){
+    const p = this.get(PROVIDER_STORE);
+    if(p) return p;
+    /* Someone who only ever saved a Claude key keeps using Claude. */
+    return this.get(KEY_STORE) && !this.get(GEMINI_KEY_STORE) ? "claude" : "gemini";
+  },
+  label(){ return this.provider() === "claude" ? "Claude" : "Gemini"; },
+  claudeKey(){ return this.get(KEY_STORE); },
+  geminiKey(){ return this.get(GEMINI_KEY_STORE); },
+  geminiModel(){ return this.get(GEMINI_MODEL_STORE) || GEMINI_DEFAULT_MODEL; },
+  key(){ return this.provider() === "claude" ? this.claudeKey() : this.geminiKey(); },
+  refresh(){ this._client = null; S.sampleReady = S.imagesOk = !!this.key(); render(); },
+  setProvider(p){ this.put(PROVIDER_STORE, p); this.refresh(); },
+  setKey(v){ this.put(KEY_STORE, v); this.refresh(); },
+  setGeminiKey(v){ this.put(GEMINI_KEY_STORE, v); this.refresh(); },
+  setGeminiModel(v){ this.put(GEMINI_MODEL_STORE, v); },
   async client(){
-    const key = this.key();
+    const key = this.claudeKey();
     if(!key) throw {code:"no_key"};
     if(this._client && this._forKey === key) return this._client;
     let Anthropic;
@@ -2206,7 +2331,7 @@ const AI = {
   }
 };
 
-/* Map whatever the SDK throws onto the codes this app already handles. */
+/* Map whatever the Anthropic SDK throws onto the codes this app handles. */
 function toAppError(e, partial){
   if(e && e.code && !e.status) return e;
   const name = e && e.constructor ? e.constructor.name : "";
@@ -2238,7 +2363,7 @@ function textOf(message){
 }
 
 /* Phone photos run to several megabytes. Shrink to 1600px JPEG before sending:
-   plenty for reading a bill, and well inside the API's image limits. */
+   plenty for reading a bill or a recipe card, and inside every API's limits. */
 async function shrinkImage(file, maxSide){
   const url = URL.createObjectURL(file);
   try {
@@ -2256,14 +2381,20 @@ async function blobToBase64(blob){
   for(let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
   return btoa(s);
 }
-async function imageBlocks(images){
-  const list = Array.isArray(images) ? images : [images];
+/* Photos and PDFs to send along with a prompt, ready for either provider. */
+async function attachmentsOf(o){
+  const list = [].concat(o.images || [], o.files || []).filter(Boolean);
   const out = [];
   for(const f of list){
-    if(!f) continue;
-    let small;
-    try { small = await shrinkImage(f, 1600); } catch(e){ throw {code:"image_rejected"}; }
-    out.push({type:"image", source:{type:"base64", media_type:"image/jpeg", data: await blobToBase64(small)}});
+    const type = f.type || "";
+    if(/^image\//.test(type)){
+      let small;
+      try { small = await shrinkImage(f, 1600); } catch(e){ throw {code:"image_rejected"}; }
+      out.push({mime:"image/jpeg", data: await blobToBase64(small)});
+    } else if(type === "application/pdf"){
+      if(f.size > 18 * 1024 * 1024) throw {code:"too_big"};
+      out.push({mime:"application/pdf", data: await blobToBase64(f)});
+    } else throw {code:"file_type"};
   }
   return out;
 }
@@ -2272,10 +2403,11 @@ async function callClaude(prompt, opts){
   const o = opts || {};
   const client = await AI.client();
   const body = requestBody(prompt, o);
-  if(o.images){
-    const imgs = await imageBlocks(o.images);
-    if(imgs.length) body.messages = [{role:"user", content: imgs.concat([{type:"text", text:prompt}])}];
-  }
+  const atts = await attachmentsOf(o);
+  if(atts.length) body.messages = [{role:"user", content: atts.map(a => a.mime === "application/pdf"
+    ? {type:"document", source:{type:"base64", media_type:a.mime, data:a.data}}
+    : {type:"image", source:{type:"base64", media_type:a.mime, data:a.data}}
+  ).concat([{type:"text", text:prompt}])}];
   let partial = "";
   try {
     if(o.onText && client.beta && client.beta.messages && client.beta.messages.stream){
@@ -2301,6 +2433,78 @@ async function callClaude(prompt, opts){
   }
 }
 
+/* Gemini's schema dialect: upper-case types, and no additionalProperties. */
+function toGeminiSchema(s){
+  if(!s || typeof s !== "object") return s;
+  const out = {};
+  if(s.type) out.type = String(s.type).toUpperCase();
+  if(s.enum){ out.enum = s.enum.map(String); out.format = "enum"; }
+  if(s.properties){
+    out.properties = {};
+    for(const k in s.properties) out.properties[k] = toGeminiSchema(s.properties[k]);
+  }
+  if(s.items) out.items = toGeminiSchema(s.items);
+  if(s.required) out.required = s.required.slice();
+  return out;
+}
+function geminiError(status, raw){
+  let msg = "";
+  try { msg = (JSON.parse(raw).error || {}).message || ""; } catch(e){}
+  if(status === 400 && /api key/i.test(msg)) return {code:"auth", message:msg};
+  if(status === 401 || status === 403) return {code:"auth", message:msg};
+  if(status === 404) return {code:"model", message:msg};
+  if(status === 413) return {code:"too_big", message:msg};
+  if(status === 429) return {code:"rate_limited", message:msg};
+  if(status === 400) return {code:"invalid_request", message:msg};
+  return {code:"upstream_error", message:msg};
+}
+async function callGemini(prompt, opts){
+  const o = opts || {};
+  const key = AI.geminiKey();
+  if(!key) throw {code:"no_key"};
+  const parts = (await attachmentsOf(o)).map(a => ({inline_data:{mime_type:a.mime, data:a.data}}));
+  parts.push({text:prompt});
+  const body = {contents:[{role:"user", parts:parts}], generationConfig:{temperature:0.4}};
+  if(o.json){
+    body.generationConfig.responseMimeType = "application/json";
+    if(o.schema) body.generationConfig.responseSchema = toGeminiSchema(o.schema);
+  }
+  const send = b => fetch(GEMINI_URL + encodeURIComponent(AI.geminiModel()) + ":generateContent", {
+    method:"POST", signal:o.signal,
+    headers:{"content-type":"application/json", "x-goog-api-key":key},
+    body:JSON.stringify(b)
+  });
+  let res;
+  try {
+    res = await send(body);
+    /* If this model rejects the schema, ask again with plain JSON instead. */
+    if(res.status === 400 && body.generationConfig.responseSchema){
+      const raw = await res.clone().text();
+      if(/schema|unknown name|invalid json payload/i.test(raw)){
+        delete body.generationConfig.responseSchema;
+        res = await send(body);
+      }
+    }
+  } catch(e){
+    throw {code: e && e.name === "AbortError" ? "cancelled" : "offline"};
+  }
+  if(!res.ok) throw geminiError(res.status, await res.text().catch(() => ""));
+  const data = await res.json();
+  if(data.promptFeedback && data.promptFeedback.blockReason) throw {code:"refused"};
+  const cand = (data.candidates || [])[0];
+  if(!cand) throw {code:"empty_completion"};
+  if(/SAFETY|PROHIBITED|BLOCKLIST|RECITATION/.test(cand.finishReason || "")) throw {code:"refused"};
+  const text = ((cand.content || {}).parts || [])
+    .filter(p => typeof p.text === "string" && !p.thought).map(p => p.text).join("").trim();
+  if(!text) throw {code:"empty_completion"};
+  if(o.onText) o.onText({text:text, delta:text});
+  return text;
+}
+
+function callAI(prompt, opts){
+  return AI.provider() === "claude" ? callClaude(prompt, opts) : callGemini(prompt, opts);
+}
+
 /* Tolerant JSON reader: whole reply, else one fenced block, else the span
    from the first bracket to the last. */
 function readJson(text){
@@ -2317,11 +2521,11 @@ function readJson(text){
 
 function makeSampleFn(){
   const fn = async function(prompt, opts){
-    const text = await callClaude(prompt, opts);
+    const text = await callAI(prompt, opts);
     return {text:text, truncated:false};
   };
   fn.json = async function(prompt, opts){
-    const text = await callClaude(prompt, opts);
+    const text = await callAI(prompt, Object.assign({}, opts, {json:true}));
     return readJson(text);
   };
   return fn;
@@ -2334,20 +2538,24 @@ async function initSample(){
 }
 
 function sampleErrorText(e){
+  const who = AI.label();
   const map = {
-    no_key:"Add your Anthropic API key under Settings first.",
-    auth:"That API key was refused. Check it under Settings.",
-    sdk_unavailable:"Could not load the Claude library — you may be offline. Everything else still works.",
-    offline:"No connection to Claude. The rest of the app works offline.",
-    rate_limited:"That is a lot of asking at once. Give it a minute.",
-    refused:"Claude would not answer that one. Try rewording it.",
-    invalid_json:"The answer came back in the wrong shape. Try again.",
-    invalid_request:"Claude refused the request as malformed. Try asking for less.",
-    empty_completion:"Nothing came back. Ask for less.",
-    image_rejected:"That photo could not be read. Try a JPEG or PNG taken with the camera.",
-    cancelled:"Stopped."
+    no_key: "Add your " + (AI.provider() === "claude" ? "Anthropic" : "Gemini") + " API key under Settings first.",
+    auth: "That " + who + " API key was refused. Check it under Settings.",
+    model: "Gemini does not recognise the model name in Settings. Clear that box to use the default.",
+    sdk_unavailable: "Could not load the Claude library — you may be offline. Everything else still works.",
+    offline: "No connection to " + who + ". The rest of the app works offline.",
+    rate_limited: who + " says that is too many requests for now. On the free tier, wait a minute and try again.",
+    refused: who + " would not answer that one. Try rewording it.",
+    invalid_json: "The answer came back in the wrong shape. Try again.",
+    invalid_request: who + " could not take that request. Try a smaller file or less text.",
+    empty_completion: "Nothing came back. Try again, or ask for less.",
+    image_rejected: "That photo could not be read. Try a JPEG or PNG taken with the camera.",
+    too_big: "That file is too big to send. Try a smaller one, or split it.",
+    file_type: "That kind of file cannot be read. Use a PDF, a photo, Word (.docx), Excel (.xlsx) or text.",
+    cancelled: "Stopped."
   };
-  return (e && map[e.code]) || "Claude could not answer just now.";
+  return (e && map[e.code]) || who + " could not answer just now.";
 }
 function tasteLine(){
   const t = S.settings.taste || {};
@@ -2419,7 +2627,7 @@ async function aiRecipeToStore(recipe, source){
   const id = await Store.save("recipes", null, {
     name: recipe.name || "Untitled",
     cuisine: recipe.cuisine || "",
-    tags: (recipe.tags || []).concat(source === "ai" ? ["written by Claude"] : ["imported"]),
+    tags: (recipe.tags || []).concat(source === "ai" ? ["written by AI"] : ["imported"]),
     servings: num(recipe.servings) || 4,
     lines: linesFromStrings(recipe.ingredients),
     steps: recipe.steps || [],
@@ -2511,6 +2719,406 @@ function openImportRecipe(){
   });
 }
 
+/* ======================= import recipes from files =======================
+   Word and Excel files are zip archives of XML, so they are opened here
+   without any library: the zip is read by hand and each part is inflated
+   with the browser's own DecompressionStream. */
+async function readZip(buf){
+  const u8 = new Uint8Array(buf), dv = new DataView(buf);
+  let eocd = -1;
+  for(let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--){
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw {code:"bad_file"};
+  const count = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const entries = {};
+  const utf8 = new TextDecoder("utf-8");
+  for(let n = 0; n < count; n++){
+    if(dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true);
+    const csize = dv.getUint32(p + 20, true);
+    const nameLen = dv.getUint16(p + 28, true), extraLen = dv.getUint16(p + 30, true), noteLen = dv.getUint16(p + 32, true);
+    const local = dv.getUint32(p + 42, true);
+    entries[utf8.decode(u8.subarray(p + 46, p + 46 + nameLen))] = {method:method, csize:csize, local:local};
+    p += 46 + nameLen + extraLen + noteLen;
+  }
+  return {
+    names: Object.keys(entries),
+    async text(name){
+      const e = entries[name];
+      if(!e) return null;
+      const start = e.local + 30 + dv.getUint16(e.local + 26, true) + dv.getUint16(e.local + 28, true);
+      const data = u8.subarray(start, start + e.csize);
+      let out;
+      if(e.method === 0) out = data;
+      else if(e.method === 8){
+        if(typeof DecompressionStream === "undefined") throw {code:"old_browser"};
+        const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+        out = new Uint8Array(await new Response(stream).arrayBuffer());
+      } else throw {code:"bad_file"};
+      return utf8.decode(out);
+    }
+  };
+}
+const parseXml = s => new DOMParser().parseFromString(s, "application/xml");
+function byLocal(root, name){
+  const out = [];
+  const walk = n => { for(const c of n.children){ if(c.localName === name) out.push(c); walk(c); } };
+  walk(root.documentElement || root);
+  return out;
+}
+const kids = (node, name) => [...node.children].filter(c => c.localName === name);
+const textIn = (node, name) => byLocal(node, name).map(t => t.textContent).join("");
+
+/* Word: paragraphs become lines; table rows become "cell | cell | cell". */
+async function docxText(zip){
+  const xml = await zip.text("word/document.xml");
+  if(!xml) throw {code:"bad_file"};
+  const doc = parseXml(xml);
+  const lines = [];
+  const runs = p => {
+    let s = "";
+    const walk = n => {
+      for(const c of n.children){
+        if(c.localName === "t") s += c.textContent;
+        else if(c.localName === "tab") s += "\t";
+        else if(c.localName === "br" || c.localName === "cr") s += "\n";
+        else walk(c);
+      }
+    };
+    walk(p);
+    return s;
+  };
+  const block = n => {
+    for(const c of n.children){
+      if(c.localName === "p") lines.push(runs(c));
+      else if(c.localName === "tbl"){
+        for(const tr of kids(c, "tr"))
+          lines.push(kids(tr, "tc").map(tc => byLocal(tc, "p").map(runs).join(" ").trim()).join(" | "));
+      } else block(c);
+    }
+  };
+  const body = byLocal(doc, "body")[0];
+  if(body) block(body);
+  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/* Excel: every sheet, as rows of cell text. */
+function colIndex(ref){
+  const m = /^([A-Z]+)/.exec(ref || "");
+  if(!m) return -1;
+  let n = 0;
+  for(const ch of m[1]) n = n * 26 + (ch.charCodeAt(0) - 64);
+  return n - 1;
+}
+async function xlsxSheets(zip){
+  const shared = [];
+  const ss = await zip.text("xl/sharedStrings.xml");
+  if(ss) for(const si of byLocal(parseXml(ss), "si")) shared.push(textIn(si, "t"));
+  const wb = parseXml((await zip.text("xl/workbook.xml")) || "<x/>");
+  const rels = parseXml((await zip.text("xl/_rels/workbook.xml.rels")) || "<x/>");
+  const target = {};
+  for(const r of byLocal(rels, "Relationship")) target[r.getAttribute("Id")] = r.getAttribute("Target") || "";
+  const sheets = [];
+  for(const s of byLocal(wb, "sheet")){
+    const rid = s.getAttribute("r:id") ||
+      s.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id");
+    let path = target[rid];
+    if(!path) continue;
+    path = path.replace(/^\//, "");
+    if(path.indexOf("xl/") !== 0) path = "xl/" + path;
+    const xml = await zip.text(path);
+    if(!xml) continue;
+    const rows = [];
+    for(const row of byLocal(parseXml(xml), "row")){
+      const cells = [];
+      for(const c of kids(row, "c")){
+        let col = colIndex(c.getAttribute("r"));
+        if(col < 0) col = cells.length;
+        const t = c.getAttribute("t");
+        const v = kids(c, "v")[0];
+        cells[col] = t === "s" ? (v ? (shared[+v.textContent] || "") : "")
+          : t === "inlineStr" ? textIn(c, "t")
+          : (v ? v.textContent : "");
+      }
+      rows.push(Array.from(cells, x => x == null ? "" : String(x)));
+    }
+    sheets.push({name: s.getAttribute("name") || "Sheet", rows: rows});
+  }
+  return sheets;
+}
+
+/* CSV or tab-separated text, quotes respected. */
+function parseDelimited(text){
+  text = String(text).replace(/^﻿/, "");
+  const first = text.split(/\r?\n/, 1)[0] || "";
+  const delim = (first.match(/\t/g) || []).length > (first.match(/,/g) || []).length ? "\t"
+    : (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ";" : ",";
+  const rows = [];
+  let row = [], cell = "", quoted = false;
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(quoted){
+      if(ch === '"'){ if(text[i+1] === '"'){ cell += '"'; i++; } else quoted = false; }
+      else cell += ch;
+    } else if(ch === '"') quoted = true;
+    else if(ch === delim){ row.push(cell); cell = ""; }
+    else if(ch === "\n" || ch === "\r"){
+      if(ch === "\r" && text[i+1] === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+    } else cell += ch;
+  }
+  if(cell || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim()));
+}
+
+/* A sheet with "Recipe" and "Ingredient" columns becomes recipes directly —
+   no AI, nothing leaves the phone. Rows with the recipe cell left empty
+   belong to the recipe above, the way people usually lay these out. */
+function tableRecipes(rows){
+  for(let h = 0; h < Math.min(6, rows.length); h++){
+    const head = rows[h].map(x => String(x || "").trim().toLowerCase());
+    const col = re => head.findIndex(x => re.test(x));
+    const cRecipe = col(/^(recipe|dish|menu item|item name|recipe name|dish name)\b/);
+    const cIng = col(/ingredient/);
+    if(cRecipe < 0 || cIng < 0 || cRecipe === cIng) continue;
+    const cQty = col(/^(qty|quantity|amount|qnty)\b/), cUnit = col(/^(unit|units|uom|measure)\b/);
+    const cServ = col(/serv|portion|yield|pax/), cSteps = col(/method|step|instruction|direction|procedure/);
+    const cCuisine = col(/cuisine|category/), cWaste = col(/waste/);
+    const out = [];
+    let cur = null;
+    for(let r = h + 1; r < rows.length; r++){
+      const g = i => i >= 0 ? String(rows[r][i] == null ? "" : rows[r][i]).trim() : "";
+      const name = g(cRecipe);
+      if(name && (!cur || cur.name !== name)){
+        cur = {name:name, servings:num(g(cServ)) || 0, cuisine:g(cCuisine), lines:[], steps:[], notes:""};
+        out.push(cur);
+      }
+      if(!cur) continue;
+      if(!cur.servings && num(g(cServ)) > 0) cur.servings = num(g(cServ));
+      const ing = g(cIng);
+      if(ing){
+        let qty = cQty >= 0 ? parseFraction(g(cQty)) : NaN;
+        let unitWord = g(cUnit).toLowerCase().replace(/\.$/, "");
+        let rawName = ing;
+        if(!isFinite(qty)){ const p = parseIngredientLine(ing); qty = p.qty; unitWord = unitWord || p.unit; rawName = p.rawName; }
+        const unit = UNIT_ALIASES[unitWord] || (UNITS[unitWord] ? unitWord : "each");
+        cur.lines.push({rawName:rawName, qty: isFinite(qty) ? qty : 1, unit:unit, wastePct: num(g(cWaste)) || 0});
+      }
+      const step = g(cSteps);
+      if(step) step.split(/\n+/).map(s => s.trim()).filter(Boolean).forEach(s => cur.steps.push(s));
+    }
+    return out.filter(x => x.lines.length || x.steps.length);
+  }
+  return null;
+}
+const rowsToText = rows => rows.map(r => r.join(" | ")).join("\n");
+
+const RECIPES_SCHEMA = {type:"object", additionalProperties:false, required:["recipes"],
+  properties:{recipes:{type:"array", items:RECIPE_SCHEMA}}};
+
+function importPrompt(text, hasFiles){
+  return "You are reading recipes out of a document for a cook's recipe book.\n" +
+    "Find every recipe in it. For each give: name; cuisine if stated or obvious; servings as a number " +
+    "(if not stated, estimate from the quantities, or use 4); prepMin and cookMin as numbers (0 if unknown); tags; " +
+    "ingredients, each written \"<quantity> <unit> <name>\" with the quantities exactly as in the source " +
+    "(write just the name when no quantity is given); steps, the method in order, one step per item; " +
+    "notes, anything else useful, briefly.\n" +
+    "Never invent a recipe, ingredient, quantity or step that is not in the source. " +
+    "If there are no recipes, return an empty list.\n" +
+    "Ingredient names this cook already buys: " + pantryLine() + ". Use those names when they clearly mean the same thing.\n" +
+    'Reply with only JSON: {"recipes":[{"name":string,"cuisine":string,"servings":number,"prepMin":number,' +
+    '"cookMin":number,"tags":[string],"ingredients":[string],"steps":[string],"notes":string}]}' +
+    (hasFiles ? "\n\nThe attached files are part of the document." : "") +
+    (text ? "\n\nDOCUMENT:\n" + text : "");
+}
+
+/* Read what the files hold. Returns recipes already understood, plus the
+   text and files that still need the AI to read them. */
+async function gatherImport(files){
+  const direct = [], texts = [], attach = [], notes = [];
+  for(const f of files){
+    const name = f.name || "file";
+    const ext = (name.split(".").pop() || "").toLowerCase();
+    const head = new Uint8Array(await f.slice(0, 8).arrayBuffer());
+    if(head[0] === 0xD0 && head[1] === 0xCF && head[2] === 0x11 && head[3] === 0xE0){
+      notes.push(name + " is an old Word or Excel format. Open it and use Save As .docx or .xlsx, then import that.");
+      continue;
+    }
+    if(ext === "pdf" || f.type === "application/pdf"){ attach.push(f.type ? f : new File([f], name, {type:"application/pdf"})); continue; }
+    if(/^image\//.test(f.type) || /^(jpe?g|png|webp|gif)$/.test(ext)){
+      attach.push(f.type ? f : new File([f], name, {type:"image/" + (ext === "jpg" ? "jpeg" : ext)}));
+      continue;
+    }
+    if(ext === "docx"){
+      const text = await docxText(await readZip(await f.arrayBuffer()));
+      if(text) texts.push("--- " + name + " ---\n" + text);
+      continue;
+    }
+    if(ext === "xlsx" || ext === "xlsm"){
+      const sheets = await xlsxSheets(await readZip(await f.arrayBuffer()));
+      for(const sh of sheets){
+        const found = tableRecipes(sh.rows);
+        if(found && found.length) direct.push.apply(direct, found);
+        else if(sh.rows.length) texts.push("--- " + name + ", sheet " + sh.name + " ---\n" + rowsToText(sh.rows));
+      }
+      continue;
+    }
+    const raw = await f.text();
+    if(ext === "json"){
+      try {
+        const data = JSON.parse(raw);
+        const list = Array.isArray(data) ? data : data.recipes;
+        if(Array.isArray(list) && list.length && list[0] && (list[0].lines || list[0].ingredients)){
+          list.forEach(r => direct.push({
+            name:r.name || "Untitled", servings:num(r.servings) || 0, cuisine:r.cuisine || "",
+            lines: r.lines || linesFromStrings(r.ingredients || []), steps:r.steps || [], notes:r.notes || "",
+            prepMin:num(r.prepMin) || 0, cookMin:num(r.cookMin) || 0, tags:r.tags || []
+          }));
+          continue;
+        }
+      } catch(e){}
+    }
+    if(ext === "csv" || ext === "tsv"){
+      const rows = parseDelimited(raw);
+      const found = tableRecipes(rows);
+      if(found && found.length){ direct.push.apply(direct, found); continue; }
+      texts.push("--- " + name + " ---\n" + rowsToText(rows));
+      continue;
+    }
+    if(raw.trim()) texts.push("--- " + name + " ---\n" + raw);
+  }
+  return {direct:direct, text:texts.join("\n\n").slice(0, 120000), attach:attach, notes:notes};
+}
+
+function fromAiRecipe(r){
+  return {
+    name: r.name || "Untitled", cuisine: r.cuisine || "", servings: num(r.servings) || 0,
+    prepMin: num(r.prepMin) || 0, cookMin: num(r.cookMin) || 0, tags: r.tags || [],
+    lines: linesFromStrings(r.ingredients || []), steps: r.steps || [], notes: r.notes || ""
+  };
+}
+function importErrorText(e){
+  const map = {
+    bad_file: "That file could not be opened. It may be damaged or password protected.",
+    old_browser: "This phone's browser is too old to open Word or Excel files. Update Chrome, or save the file as text or PDF.",
+    needs_ai: "Only the AI can read this file. Add a free Gemini key under Settings, or use an Excel sheet with Recipe and Ingredient columns."
+  };
+  return (e && map[e.code]) || sampleErrorText(e);
+}
+
+function openFileImport(presetFiles){
+  let phase = "pick", found = [], errText = null, ctl = null, notes = [], how = "";
+  const picker = el("input", {type:"file", multiple:"multiple", style:"display:none",
+    accept:".docx,.xlsx,.xlsm,.csv,.tsv,.txt,.md,.json,.pdf,image/*,application/pdf,text/plain",
+    onchange:e => { const files = [...e.target.files]; e.target.value = ""; if(files.length) run(files); }});
+
+  const run = async files => {
+    phase = "reading"; errText = null; notes = []; ctl = new AbortController(); renderModal();
+    try {
+      const g = await gatherImport(files);
+      notes = g.notes;
+      let recipes = g.direct.slice(), usedAi = false;
+      if(g.text || g.attach.length){
+        if(!S.sampleReady){
+          if(!recipes.length) throw {code:"needs_ai"};
+          notes.push("Some of it needs the AI to read, and no AI key is set — only the table recipes were read.");
+        } else {
+          const out = await sampleFn.json(importPrompt(g.text, g.attach.length > 0),
+            {signal:ctl.signal, schema:RECIPES_SCHEMA, files:g.attach, cache:false});
+          const list = Array.isArray(out) ? out : (out && out.recipes) || [];
+          recipes = recipes.concat(list.map(fromAiRecipe));
+          usedAi = true;
+        }
+      }
+      found = recipes.filter(r => r.name && (r.lines.length || r.steps.length)).map(r => Object.assign({keep:true}, r));
+      how = usedAi ? (g.direct.length ? "Tables read directly; the rest by " + AI.label() + "."
+                                      : "Read by " + AI.label() + ". Check them before saving.")
+                   : "Read directly from the file — nothing was sent anywhere.";
+      phase = found.length ? "review" : "pick";
+      if(!found.length) errText = notes.length ? null : "No recipes were found in that.";
+    } catch(e){
+      phase = "pick";
+      if(!e || e.code !== "cancelled") errText = importErrorText(e);
+    }
+    renderModal();
+  };
+
+  const save = async () => {
+    const keep = found.filter(r => r.keep);
+    for(const r of keep){
+      await Store.save("recipes", null, {
+        name:r.name, cuisine:r.cuisine || "", tags:(r.tags || []).concat(["imported"]),
+        servings: r.servings || 4, yieldQty:null, yieldUnit:"",
+        lines: r.lines.map(l => {
+          const ing = (l.ingredientId && S.ix.ing[l.ingredientId]) || matchIngredient(l.rawName);
+          return Object.assign({wastePct:0, note:""}, l, {ingredientId: ing ? ing.id : null});
+        }),
+        steps:r.steps || [], prepMin:r.prepMin || 0, cookMin:r.cookMin || 0,
+        source:"import", sourceUrl:"", notes:r.notes || "", business:{}, favorite:false,
+        createdAt:new Date().toISOString()
+      });
+    }
+    closeModal();
+    toast("Imported " + keep.length + " " + pluralise(keep.length, "recipe"));
+    go("recipes");
+  };
+
+  openModal({
+    wide:true, title:"Import recipes from a file", noAutofocus:true,
+    body: () => {
+      if(phase === "reading") return thinkingBlock("Reading the file…", () => ctl && ctl.abort());
+      if(phase === "review"){
+        const n = found.filter(r => r.keep).length;
+        return frag(
+          el("div", {class:"hint"}, how),
+          notes.length ? el("div", {class:"banner"}, el("div", null, notes.join(" "))) : null,
+          el("div", {class:"stack", style:"gap:8px"}, found.map(r => {
+            const linked = r.lines.filter(l => (l.ingredientId && S.ix.ing[l.ingredientId]) || matchIngredient(l.rawName)).length;
+            return el("label", {class:"panel", style:"display:flex;gap:12px;align-items:flex-start;padding:12px;cursor:pointer" + (r.keep ? "" : ";opacity:.55")},
+              el("input", {type:"checkbox", checked:r.keep, style:"margin-top:4px;width:18px;height:18px",
+                onchange:e => { r.keep = e.target.checked; renderModal(); }}),
+              el("div", {style:"min-width:0"},
+                el("div", {class:"name"}, r.name),
+                el("div", {class:"sub2"},
+                  [r.cuisine, (r.servings || 4) + " " + pluralise(r.servings || 4, "serving"),
+                   r.lines.length + " " + pluralise(r.lines.length, "ingredient"),
+                   r.steps.length ? r.steps.length + " " + pluralise(r.steps.length, "step") : "no method"]
+                  .filter(Boolean).join("  ·  ")),
+                r.lines.length ? el("div", {class:"hint", style:"margin-top:4px"},
+                  r.lines.slice(0, 5).map(l => l.rawName).join(", ") + (r.lines.length > 5 ? "…" : "")) : null,
+                el("div", {style:"margin-top:6px"},
+                  el("span", {class:"pill " + (linked === r.lines.length && r.lines.length ? "good" : "flat")},
+                    linked + " of " + r.lines.length + " match your ingredients"))));
+          })),
+          el("div", {class:"hint"}, n + " of " + found.length + " will be saved. Unmatched ingredients can be linked afterwards on each recipe."));
+      }
+      return frag(
+        errText ? el("div", {class:"banner"}, el("div", null, errText)) : null,
+        notes.length ? el("div", {class:"banner"}, el("div", null, notes.join(" "))) : null,
+        el("div", {class:"empty", style:"padding:22px"},
+          el("h3", null, "Choose one or more files"),
+          el("div", null, "Word (.docx), Excel (.xlsx), CSV, PDF, text, or a photo of a recipe."),
+          el("div", {style:"margin-top:14px"}, btn("Choose files", {cls:"primary", icon:"down", onClick:() => picker.click()}))),
+        picker,
+        el("div", {class:"hint"},
+          el("b", null, "No AI needed: "),
+          "an Excel or CSV sheet with a Recipe column and an Ingredient column (Quantity, Unit, Servings and Method columns optional) is read directly. ",
+          "Rows with the Recipe cell left blank belong to the recipe above."),
+        el("div", {class:"hint"},
+          el("b", null, "With AI: "),
+          "Word documents, PDFs, photos and loose text are read by " + AI.label() + (S.sampleReady ? "." : " once you add a key under Settings.")));
+    },
+    footer: () => phase === "review"
+      ? frag(btn("Back", {cls:"ghost", onClick:() => { phase = "pick"; renderModal(); }}),
+             btn((n => "Save " + n + " " + pluralise(n, "recipe"))(found.filter(r => r.keep).length), {cls:"primary", icon:"save",
+               disabled:!found.some(r => r.keep), onClick:save}))
+      : btn("Close", {cls:"ghost", onClick:closeModal})
+  });
+  if(presetFiles && presetFiles.length) run(presetFiles);
+}
+
 function openIdeaSearch(){
   let brief = "", phase = "form", items = null, errText = null, ctl = null;
   const run = async () => {
@@ -2534,8 +3142,8 @@ function openIdeaSearch(){
   };
   const keep = async () => {
     const day = feedFor(todayISO());
-    const merged = ((day && day.items) || []).concat(items.map(i => Object.assign({}, i, {url:"", site:"written by Claude"})));
-    await Store.save("feed", todayISO(), {items:merged, source:"written by Claude", updatedAt:new Date().toISOString()});
+    const merged = ((day && day.items) || []).concat(items.map(i => Object.assign({}, i, {url:"", site:"written by " + AI.label()})));
+    await Store.save("feed", todayISO(), {items:merged, source:"written by " + AI.label(), updatedAt:new Date().toISOString()});
     closeModal(); toast("Added to Today"); go("today");
   };
   openModal({
@@ -2552,7 +3160,7 @@ function openIdeaSearch(){
       return frag(
         errText ? el("div", {class:"banner"}, errText) : null,
         field("Anything particular?", textInput(brief, v => brief = v, {id:"idea-brief", placeholder:"something quick with what is in the fridge"})),
-        el("div", {class:"hint"}, "These are written by Claude from your preferences — it cannot browse, so there are no source links. The daily search does that part."));
+        el("div", {class:"hint"}, "These are written by the AI from your preferences — there are no source links."));
     },
     footer: () => phase === "result"
       ? frag(btn("Try again", {cls:"ghost", onClick:run}), btn("Add to Today", {cls:"primary", icon:"check", onClick:keep}))
@@ -2607,6 +3215,9 @@ async function offerFile(filename, text){
     toast("Saved to your downloads");
     return;
   } catch(e){ /* fall through to copy */ }
+  if(window.Capacitor && capPlugin("Filesystem")){
+    if(await saveBlob(filename, new Blob([text], {type:filename.endsWith(".json") ? "application/json" : "text/plain"}))) return;
+  }
   openModal({
     wide:true, title:"Copy your data",
     body: () => frag(
@@ -2762,8 +3373,915 @@ async function pruneFeed(){
   for(const f of S.feed){ if(f.id < cutoff) await Store.remove("feed", f.id); }
 }
 
+/* ======================= SCAN — the image engine =======================
+   Ported from Paper Trail: paper sizes, straightening a photographed page,
+   finding its edges, squeezing it under a size, and writing a PDF by hand. */
+/* ======================= paper sizes ======================= */
+/* Every size is held in millimetres; inches are converted once, here. */
+const IN = 25.4;
+const PAGE_SIZES = [
+  {id:"a4",      label:"A4",                 w:210,    h:297,    kind:"doc"},
+  {id:"a5",      label:"A5",                 w:148,    h:210,    kind:"doc"},
+  {id:"letter",  label:"Letter",             w:8.5*IN, h:11*IN,  kind:"doc"},
+  {id:"legal",   label:"Legal",              w:8.5*IN, h:14*IN,  kind:"doc"},
+  {id:"pp3545",  label:"Passport 35 × 45 mm",w:35,     h:45,     kind:"photo"},
+  {id:"us2x2",   label:"US photo 2 × 2 in",  w:2*IN,   h:2*IN,   kind:"photo"},
+  {id:"p2535",   label:"Photo 25 × 35 mm",   w:25,     h:35,     kind:"photo"},
+  {id:"p4x6",    label:"Photo 4 × 6 in",     w:4*IN,   h:6*IN,   kind:"photo"},
+  {id:"square",  label:"Square 1000 px",     w:0,      h:0,      kind:"photo", px:1000},
+  {id:"custom",  label:"Custom size",        w:210,    h:297,    kind:"doc"}
+];
+const DPIS = [150, 200, 300];
+const mmToPx = (mm, dpi) => Math.max(1, Math.round(mm / IN * dpi));
+const mmToPt = mm => mm * 72 / IN;
+const fmtBytes = n => n < 1024 ? n + " B"
+  : n < 1024*1024 ? (n/1024).toFixed(n < 10240 ? 1 : 0) + " KB"
+  : (n/1048576).toFixed(2) + " MB";
+
+/* ======================= geometry ======================= */
+/* Maps the unit square onto the four corners the user dragged, so the page can
+   be un-skewed: the standard projective mapping, corners in the order
+   top-left, top-right, bottom-right, bottom-left. */
+function squareToQuad(q){
+  const x0 = q[0].x, y0 = q[0].y, x1 = q[1].x, y1 = q[1].y;
+  const x2 = q[2].x, y2 = q[2].y, x3 = q[3].x, y3 = q[3].y;
+  const dx1 = x1 - x2, dx2 = x3 - x2, dy1 = y1 - y2, dy2 = y3 - y2;
+  const sx = x0 - x1 + x2 - x3, sy = y0 - y1 + y2 - y3;
+  let g = 0, h = 0;
+  if(sx !== 0 || sy !== 0){
+    const den = dx1*dy2 - dx2*dy1;
+    if(Math.abs(den) < 1e-12) return null;
+    g = (sx*dy2 - dx2*sy) / den;
+    h = (dx1*sy - sx*dy1) / den;
+  }
+  return {
+    a: x1 - x0 + g*x1, b: x3 - x0 + h*x3, c: x0,
+    d: y1 - y0 + g*y1, e: y3 - y0 + h*y3, f: y0,
+    g: g, h: h
+  };
+}
+/* A point of the unit square (u,v) back to where it sits in the photo. */
+function mapPoint(m, u, v){
+  const den = m.g*u + m.h*v + 1;
+  return {x:(m.a*u + m.b*v + m.c) / den, y:(m.d*u + m.e*v + m.f) / den};
+}
+const dist = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
+/* The shape of the quad, used to keep a document's proportions when fitting. */
+function quadAspect(q){
+  const w = (dist(q[0], q[1]) + dist(q[3], q[2])) / 2;
+  const h = (dist(q[0], q[3]) + dist(q[1], q[2])) / 2;
+  return h > 0 ? w / h : 1;
+}
+
+/* Pull the quad out of the source and lay it flat into outW × outH. */
+function warpQuad(src, quad, outW, outH){
+  const longest = Math.max(outW, outH) * 1.4;
+  const scale = Math.min(1, longest / Math.max(src.width, src.height));
+  const sw = Math.max(1, Math.round(src.width * scale));
+  const sh = Math.max(1, Math.round(src.height * scale));
+  const sc = document.createElement("canvas");
+  sc.width = sw; sc.height = sh;
+  sc.getContext("2d", {willReadFrequently:true}).drawImage(src, 0, 0, sw, sh);
+  const sdata = sc.getContext("2d", {willReadFrequently:true}).getImageData(0, 0, sw, sh).data;
+
+  const m = squareToQuad(quad.map(p => ({x:p.x * scale, y:p.y * scale})));
+  const out = document.createElement("canvas");
+  out.width = outW; out.height = outH;
+  const octx = out.getContext("2d", {willReadFrequently:true});
+  const odata = octx.createImageData(outW, outH);
+  const o = odata.data;
+  if(!m){ octx.fillStyle = "#fff"; octx.fillRect(0, 0, outW, outH); return out; }
+
+  for(let y = 0; y < outH; y++){
+    const v = (y + 0.5) / outH;
+    for(let x = 0; x < outW; x++){
+      const u = (x + 0.5) / outW;
+      const den = m.g*u + m.h*v + 1;
+      const fx = (m.a*u + m.b*v + m.c) / den;
+      const fy = (m.d*u + m.e*v + m.f) / den;
+      const i = (y*outW + x) * 4;
+      if(fx < 0 || fy < 0 || fx > sw - 1 || fy > sh - 1){ o[i] = o[i+1] = o[i+2] = 255; o[i+3] = 255; continue; }
+      const x0 = fx | 0, y0 = fy | 0;
+      const x1 = x0 + 1 < sw ? x0 + 1 : x0, y1 = y0 + 1 < sh ? y0 + 1 : y0;
+      const ax = fx - x0, ay = fy - y0;
+      const p00 = (y0*sw + x0)*4, p10 = (y0*sw + x1)*4, p01 = (y1*sw + x0)*4, p11 = (y1*sw + x1)*4;
+      const w00 = (1-ax)*(1-ay), w10 = ax*(1-ay), w01 = (1-ax)*ay, w11 = ax*ay;
+      o[i]   = sdata[p00]*w00   + sdata[p10]*w10   + sdata[p01]*w01   + sdata[p11]*w11;
+      o[i+1] = sdata[p00+1]*w00 + sdata[p10+1]*w10 + sdata[p01+1]*w01 + sdata[p11+1]*w11;
+      o[i+2] = sdata[p00+2]*w00 + sdata[p10+2]*w10 + sdata[p01+2]*w01 + sdata[p11+2]*w11;
+      o[i+3] = 255;
+    }
+  }
+  octx.putImageData(odata, 0, 0);
+  return out;
+}
+
+/* ======================= look of the scan ======================= */
+const FILTERS = [
+  {id:"original", label:"Photo"},
+  {id:"boost",    label:"Brighten"},
+  {id:"grey",     label:"Grey"},
+  {id:"doc",      label:"Document"}
+];
+function applyFilter(canvas, filter){
+  if(filter === "original") return canvas;
+  const ctx = canvas.getContext("2d", {willReadFrequently:true});
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const d = img.data, n = canvas.width * canvas.height;
+
+  if(filter === "grey" || filter === "doc"){
+    const grey = new Uint8ClampedArray(n);
+    for(let i = 0, p = 0; i < n; i++, p += 4)
+      grey[i] = (d[p]*0.299 + d[p+1]*0.587 + d[p+2]*0.114) | 0;
+
+    if(filter === "grey"){
+      for(let i = 0, p = 0; i < n; i++, p += 4){ d[p] = d[p+1] = d[p+2] = grey[i]; }
+    } else {
+      /* Compare each pixel with the average of its neighbourhood, so a page
+         photographed with a shadow across it still comes out clean. */
+      const w = canvas.width, h = canvas.height;
+      const sum = new Float64Array((w+1) * (h+1));
+      for(let y = 0; y < h; y++){
+        let run = 0;
+        for(let x = 0; x < w; x++){
+          run += grey[y*w + x];
+          sum[(y+1)*(w+1) + x + 1] = sum[y*(w+1) + x + 1] + run;
+        }
+      }
+      const rad = Math.max(8, Math.round(Math.min(w, h) / 24));
+      const k = 0.13;
+      for(let y = 0; y < h; y++){
+        const y0 = Math.max(0, y - rad), y1 = Math.min(h - 1, y + rad);
+        for(let x = 0; x < w; x++){
+          const x0 = Math.max(0, x - rad), x1 = Math.min(w - 1, x + rad);
+          const area = (x1 - x0 + 1) * (y1 - y0 + 1);
+          const s = sum[(y1+1)*(w+1) + x1+1] - sum[y0*(w+1) + x1+1] - sum[(y1+1)*(w+1) + x0] + sum[y0*(w+1) + x0];
+          const mean = s / area;
+          const val = grey[y*w + x] > mean * (1 - k) ? 255 : 0;
+          const p = (y*w + x) * 4;
+          d[p] = d[p+1] = d[p+2] = val;
+        }
+      }
+    }
+  } else if(filter === "boost"){
+    /* Stretch the range between the 2nd and 98th percentile, then lift colour. */
+    const hist = new Uint32Array(256);
+    for(let i = 0, p = 0; i < n; i++, p += 4)
+      hist[(d[p]*0.299 + d[p+1]*0.587 + d[p+2]*0.114) | 0]++;
+    let lo = 0, hi = 255, acc = 0;
+    const cut = n * 0.02;
+    for(let i = 0; i < 256; i++){ acc += hist[i]; if(acc > cut){ lo = i; break; } }
+    acc = 0;
+    for(let i = 255; i >= 0; i--){ acc += hist[i]; if(acc > cut){ hi = i; break; } }
+    const span = Math.max(1, hi - lo);
+    for(let i = 0, p = 0; i < n; i++, p += 4){
+      const r = (d[p] - lo) * 255 / span, g = (d[p+1] - lo) * 255 / span, b = (d[p+2] - lo) * 255 / span;
+      const m = r*0.299 + g*0.587 + b*0.114;
+      d[p]   = m + (r - m) * 1.18;
+      d[p+1] = m + (g - m) * 1.18;
+      d[p+2] = m + (b - m) * 1.18;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas;
+}
+
+/* Where the page probably sits in the photo. The page is usually the bright
+   shape on a darker table, so: split light from dark, then take the four
+   outermost points of that shape — which are the corners of a sheet even
+   when it was photographed at an angle. A starting point to drag, not a
+   promise. */
+function greyOf(src, maxSide){
+  const scale = Math.min(1, maxSide / Math.max(src.width, src.height));
+  const w = Math.max(8, Math.round(src.width * scale)), h = Math.max(8, Math.round(src.height * scale));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d", {willReadFrequently:true});
+  ctx.drawImage(src, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const grey = new Uint8ClampedArray(w * h);
+  for(let i = 0, p = 0; i < w*h; i++, p += 4) grey[i] = (d[p]*0.299 + d[p+1]*0.587 + d[p+2]*0.114) | 0;
+  return {grey:grey, w:w, h:h, scale:scale};
+}
+/* The brightness that best separates two groups of pixels (Otsu's method). */
+function splitLevel(grey){
+  const hist = new Uint32Array(256);
+  for(let i = 0; i < grey.length; i++) hist[grey[i]]++;
+  const total = grey.length;
+  let sum = 0;
+  for(let i = 0; i < 256; i++) sum += i * hist[i];
+  let sumB = 0, wB = 0, best = 0, bestVar = -1;
+  for(let t = 0; t < 256; t++){
+    wB += hist[t];
+    if(!wB) continue;
+    const wF = total - wB;
+    if(!wF) break;
+    sumB += t * hist[t];
+    const mB = sumB / wB, mF = (sum - sumB) / wF;
+    const between = wB * wF * (mB - mF) * (mB - mF);
+    if(between > bestVar){ bestVar = between; best = t; }
+  }
+  return best;
+}
+function cornersFromMask(mask, w, h){
+  let area = 0;
+  let minSum = Infinity, maxSum = -Infinity, minDiff = Infinity, maxDiff = -Infinity;
+  let tl = null, br = null, bl = null, tr = null;
+  for(let y = 0; y < h; y++){
+    for(let x = 0; x < w; x++){
+      if(!mask[y*w + x]) continue;
+      area++;
+      const s = x + y, df = x - y;
+      if(s < minSum){ minSum = s; tl = {x, y}; }
+      if(s > maxSum){ maxSum = s; br = {x, y}; }
+      if(df < minDiff){ minDiff = df; bl = {x, y}; }
+      if(df > maxDiff){ maxDiff = df; tr = {x, y}; }
+    }
+  }
+  if(!tl || area < w*h*0.08) return null;
+  const quad = [tl, tr, br, bl];
+  const side = [dist(tl, tr), dist(tr, br), dist(br, bl), dist(bl, tl)];
+  if(Math.min.apply(null, side) < Math.min(w, h) * 0.12) return null;
+  /* How much of the shape's own outline is actually filled in. A sheet of
+     paper fills it; scattered text or a table seen around a card does not. */
+  let quadArea = 0;
+  for(let i = 0; i < 4; i++){
+    const p = quad[i], q = quad[(i+1) % 4];
+    quadArea += p.x*q.y - q.x*p.y;
+  }
+  quadArea = Math.abs(quadArea) / 2;
+  if(quadArea < w*h*0.06) return null;
+  return {quad:quad, fill: area / quadArea, cover: quadArea / (w*h)};
+}
+function autoCorners(src){
+  const g = greyOf(src, 420);
+  const w = g.w, h = g.h, n = w * h;
+  const level = splitLevel(g.grey);
+  const bright = new Uint8Array(n), dark = new Uint8Array(n);
+  for(let i = 0; i < n; i++){ if(g.grey[i] > level) bright[i] = 1; else dark[i] = 1; }
+  /* A pale page on a dark table is the usual case; try the other way round too. */
+  /* Try both readings — a pale page on a dark table, and a dark card on a pale
+     one — and keep whichever forms the more solid shape. */
+  const cands = [cornersFromMask(bright, w, h), cornersFromMask(dark, w, h)].filter(Boolean);
+  cands.sort((a, b) => (b.fill - a.fill) || (a.cover - b.cover));
+  let quad = cands.length ? cands[0].quad : null;
+
+  if(!quad){
+    /* Nothing separated cleanly — fall back to where the detail is. */
+    const colScore = new Float64Array(w), rowScore = new Float64Array(h);
+    for(let y = 1; y < h - 1; y++){
+      for(let x = 1; x < w - 1; x++){
+        const gx = g.grey[y*w + x + 1] - g.grey[y*w + x - 1];
+        const gy = g.grey[(y+1)*w + x] - g.grey[(y-1)*w + x];
+        const mag = Math.abs(gx) + Math.abs(gy);
+        colScore[x] += mag; rowScore[y] += mag;
+      }
+    }
+    const bounds = (arr, len) => {
+      let max = 0;
+      for(let i = 0; i < len; i++) if(arr[i] > max) max = arr[i];
+      const th = max * 0.22;
+      let a = 0, b = len - 1;
+      while(a < len && arr[a] < th) a++;
+      while(b > a && arr[b] < th) b--;
+      return (b - a) > len * 0.3 ? [a, b] : [Math.round(len*0.04), Math.round(len*0.96)];
+    };
+    const [x0, x1] = bounds(colScore, w), [y0, y1] = bounds(rowScore, h);
+    quad = [{x:x0, y:y0}, {x:x1, y:y0}, {x:x1, y:y1}, {x:x0, y:y1}];
+  }
+  return quad.map(p => ({x: p.x / g.scale, y: p.y / g.scale}));
+}
+/* ======================= turning it into a file ======================= */
+function canvasToBlob(canvas, type, quality){
+  return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+}
+function scaledCanvas(canvas, factor){
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(canvas.width * factor));
+  c.height = Math.max(1, Math.round(canvas.height * factor));
+  const ctx = c.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(canvas, 0, 0, c.width, c.height);
+  return c;
+}
+/* Squeeze under a byte limit: drop quality first, and only shrink the
+   picture when quality alone cannot get there. */
+async function encodeUnder(canvas, type, limitBytes, onStep){
+  const qualities = [0.92, 0.85, 0.78, 0.7, 0.62, 0.54, 0.46, 0.38, 0.3];
+  if(type === "image/png" || !limitBytes){
+    const blob = await canvasToBlob(canvas, type, type === "image/png" ? undefined : 0.92);
+    return {blob:blob, quality: type === "image/png" ? null : 0.92, scale:1, fits: !limitBytes || blob.size <= limitBytes};
+  }
+  let work = canvas, scale = 1;
+  for(let round = 0; round < 5; round++){
+    for(const q of qualities){
+      if(onStep) onStep();
+      const blob = await canvasToBlob(work, type, q);
+      if(blob.size <= limitBytes) return {blob:blob, quality:q, scale:scale, fits:true};
+    }
+    scale *= 0.78;
+    work = scaledCanvas(canvas, scale);
+  }
+  const blob = await canvasToBlob(work, type, 0.3);
+  return {blob:blob, quality:0.3, scale:scale, fits: blob.size <= limitBytes};
+}
+
+/* ======================= a PDF, written by hand =======================
+   Pages holding one JPEG each. Writing the few hundred bytes of PDF
+   ourselves keeps the app working with no network and no library. */
+function latin1(str){
+  const out = new Uint8Array(str.length);
+  for(let i = 0; i < str.length; i++) out[i] = str.charCodeAt(i) & 0xff;
+  return out;
+}
+const n2 = v => (Math.round(v * 100) / 100).toString();
+function buildPdf(items, title){
+  const chunks = [];
+  let length = 0;
+  const push = bytes => { chunks.push(bytes); length += bytes.length; };
+  const pushStr = s => push(latin1(s));
+  const offsets = [];
+  const startObj = num => { offsets[num] = length; pushStr(num + " 0 obj\n"); };
+  const endObj = () => pushStr("endobj\n");
+
+  const pageCount = items.length;
+  const objCount = 2 + pageCount * 3;
+  pushStr("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+
+  startObj(1);
+  pushStr("<< /Type /Catalog /Pages 2 0 R >>\n");
+  endObj();
+
+  const kids = [];
+  for(let i = 0; i < pageCount; i++) kids.push((3 + i*3) + " 0 R");
+  startObj(2);
+  pushStr("<< /Type /Pages /Count " + pageCount + " /Kids [" + kids.join(" ") + "] >>\n");
+  endObj();
+
+  items.forEach((it, i) => {
+    const pageNum = 3 + i*3, contentNum = pageNum + 1, imgNum = pageNum + 2;
+    startObj(pageNum);
+    pushStr("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + n2(it.wPt) + " " + n2(it.hPt) + "]" +
+      " /Resources << /XObject << /Im0 " + imgNum + " 0 R >> >> /Contents " + contentNum + " 0 R >>\n");
+    endObj();
+
+    const content = "q\n" + n2(it.drawW) + " 0 0 " + n2(it.drawH) + " " + n2(it.drawX) + " " + n2(it.drawY) + " cm\n/Im0 Do\nQ\n";
+    startObj(contentNum);
+    pushStr("<< /Length " + content.length + " >>\nstream\n");
+    pushStr(content);
+    pushStr("endstream\n");
+    endObj();
+
+    startObj(imgNum);
+    pushStr("<< /Type /XObject /Subtype /Image /Width " + it.pxW + " /Height " + it.pxH +
+      " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + it.jpeg.length + " >>\nstream\n");
+    push(it.jpeg);
+    pushStr("\nendstream\n");
+    endObj();
+  });
+
+  const xrefAt = length;
+  pushStr("xref\n0 " + (objCount + 1) + "\n0000000000 65535 f \n");
+  for(let i = 1; i <= objCount; i++)
+    pushStr(String(offsets[i]).padStart(10, "0") + " 00000 n \n");
+  pushStr("trailer\n<< /Size " + (objCount + 1) + " /Root 1 0 R >>\nstartxref\n" + xrefAt + "\n%%EOF\n");
+
+  const out = new Uint8Array(length);
+  let at = 0;
+  for(const c of chunks){ out.set(c, at); at += c.length; }
+  return new Blob([out], {type:"application/pdf"});
+}
+
+/* ======================= keeping pages between visits ======================= */
+const SCAN_DB = "kitchenbook-scans", SCAN_STORE = "pages";
+function scanIdb(){
+  return new Promise((ok, fail) => {
+    const req = indexedDB.open(SCAN_DB, 1);
+    req.onupgradeneeded = () => { if(!req.result.objectStoreNames.contains(SCAN_STORE)) req.result.createObjectStore(SCAN_STORE, {keyPath:"id"}); };
+    req.onsuccess = () => ok(req.result);
+    req.onerror = () => fail(req.error);
+  });
+}
+async function scanDbRun(mode, fn){
+  try {
+    const db = await scanIdb();
+    return await new Promise((ok, fail) => {
+      const tx = db.transaction(SCAN_STORE, mode);
+      const req = fn(tx.objectStore(SCAN_STORE));
+      tx.oncomplete = () => ok(req && req.result);
+      tx.onerror = () => fail(tx.error);
+    });
+  } catch(e){ return null; }
+}
+const scanDbAll = () => scanDbRun("readonly", s => s.getAll());
+const scanDbPut = rec => scanDbRun("readwrite", s => s.put(rec));
+const scanDbDel = id => scanDbRun("readwrite", s => s.delete(id));
+const scanDbClear = () => scanDbRun("readwrite", s => s.clear());
+
+/* ======================= saving files =======================
+   A browser saves through a download link. The installed Android app has no
+   downloads, so there the file is written with Capacitor's Filesystem plugin
+   and handed to Android's share sheet (Drive, WhatsApp, Files…). */
+const capPlugins = {};
+function capPlugin(name){
+  const C = window.Capacitor;
+  if(!C) return null;
+  if(capPlugins[name]) return capPlugins[name];
+  try {
+    if(C.isPluginAvailable && !C.isPluginAvailable(name)) return null;
+    capPlugins[name] = (C.Plugins && C.Plugins[name]) || (C.registerPlugin ? C.registerPlugin(name) : null);
+  } catch(e){ return null; }
+  return capPlugins[name];
+}
+const inApp = () => !!window.Capacitor;
+async function writeInApp(name, blob, where){
+  const fs = capPlugin("Filesystem");
+  if(!fs) throw new Error("no filesystem");
+  const data = await blobToBase64(blob);
+  const res = await fs.writeFile({path:(where === "DOCUMENTS" ? "KitchenBook/" : "") + name, data:data,
+    directory:where, recursive:true});
+  return res && res.uri;
+}
+/* Returns true when the file ended up somewhere the person can find it. */
+async function saveBlob(name, blob){
+  if(!inApp()){
+    const url = URL.createObjectURL(blob);
+    const a = el("a", {href:url, download:name});
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 8000);
+    toast("Saved to your downloads");
+    return true;
+  }
+  try {
+    await writeInApp(name, blob, "DOCUMENTS");
+    toast("Saved in Documents › KitchenBook");
+    return true;
+  } catch(e){
+    /* Some Android versions refuse the shared folder; the share sheet always works. */
+    return shareBlob(name, blob);
+  }
+}
+async function shareBlob(name, blob){
+  try {
+    if(inApp()){
+      const share = capPlugin("Share");
+      if(!share) throw new Error("no share");
+      const uri = await writeInApp(name, blob, "CACHE");
+      await share.share({title:name, files:[uri]});
+      return true;
+    }
+    const file = new File([blob], name, {type:blob.type});
+    await navigator.share({files:[file], title:name});
+    return true;
+  } catch(e){
+    if(e && (e.name === "AbortError" || /cancel/i.test(e.message || ""))) return false;
+    toast("Sharing was not possible here");
+    return false;
+  }
+}
+function canShare(name, blob){
+  if(inApp()) return !!capPlugin("Share");
+  try { return !!(navigator.canShare && navigator.canShare({files:[new File([blob], name, {type:blob.type})]})); }
+  catch(e){ return false; }
+}
+
+/* ======================= SCAN — pages and paper =======================
+   Photograph a document, drag its corners, and save it as a PDF or picture
+   at an exact paper size and under a size limit. All on the device. */
+const SC = {
+  pages: [],        /* {id, blob, rotate, corners[4], filter, name, addedAt, bitmap, thumbUrl} */
+  loaded: false, loading: false, busy: false, adding: 0,
+  out: null,
+  lastOpened: null,
+  opts: {sizeId:"a4", customW:210, customH:297, orient:"auto", dpi:200, marginMm:6, format:"pdf", limitKb:0, filename:""},
+  edit: null
+};
+const scanUid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const sizeById = id => PAGE_SIZES.find(s => s.id === id) || PAGE_SIZES[0];
+
+async function scanLoad(){
+  if(SC.loaded || SC.loading) return;
+  SC.loading = true;
+  const recs = (await scanDbAll()) || [];
+  recs.sort((a, b) => (a.order || 0) - (b.order || 0));
+  SC.pages = recs.map(r => ({id:r.id, blob:r.blob, rotate:r.rotate || 0, corners:r.corners, filter:r.filter || "doc",
+    name:r.name || "Scan", addedAt:r.addedAt || Date.now()}));
+  for(const p of SC.pages){ try { await scanThumb(p); } catch(e){} }
+  SC.loaded = true; SC.loading = false;
+  scheduleRender();
+}
+async function bitmapOf(page){
+  if(page.bitmap) return page.bitmap;
+  try { page.bitmap = await createImageBitmap(page.blob, {imageOrientation:"from-image"}); }
+  catch(e){ page.bitmap = await createImageBitmap(page.blob); }
+  return page.bitmap;
+}
+/* The photo with the page's rotation baked in — everything else works on this. */
+async function workingCanvas(page){
+  const bmp = await bitmapOf(page);
+  const turned = page.rotate === 90 || page.rotate === 270;
+  const c = document.createElement("canvas");
+  c.width = turned ? bmp.height : bmp.width;
+  c.height = turned ? bmp.width : bmp.height;
+  const ctx = c.getContext("2d");
+  ctx.translate(c.width / 2, c.height / 2);
+  ctx.rotate(page.rotate * Math.PI / 180);
+  ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
+  return c;
+}
+function rotatePage(page, work){
+  const h = work.height;
+  const moved = page.corners.map(p => ({x: h - 1 - p.y, y: p.x}));
+  page.corners = [moved[3], moved[0], moved[1], moved[2]];
+  page.rotate = (page.rotate + 90) % 360;
+}
+/* The finished page: the quad flattened, filtered, and placed on the paper. */
+async function composePage(page, geo){
+  const work = await workingCanvas(page);
+  const flat = warpQuad(work, page.corners, geo.contentW, geo.contentH);
+  applyFilter(flat, page.filter);
+  if(geo.contentW === geo.pageW && geo.contentH === geo.pageH) return flat;
+  const out = document.createElement("canvas");
+  out.width = geo.pageW; out.height = geo.pageH;
+  const ctx = out.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(flat, Math.round((geo.pageW - flat.width) / 2), Math.round((geo.pageH - flat.height) / 2));
+  return out;
+}
+/* Paper size in pixels, plus the area the scan may occupy. */
+function pageGeometry(page, opts){
+  const size = sizeById(opts.sizeId);
+  let wMm = size.id === "custom" ? Math.max(5, +opts.customW || 210) : size.w;
+  let hMm = size.id === "custom" ? Math.max(5, +opts.customH || 297) : size.h;
+  let pageW, pageH;
+  if(size.px){ pageW = pageH = size.px; wMm = hMm = size.px / opts.dpi * IN; }
+  else {
+    let portrait = hMm >= wMm;
+    if(opts.orient === "portrait") portrait = true;
+    else if(opts.orient === "landscape") portrait = false;
+    else if(opts.orient === "auto" && page) portrait = quadAspect(page.corners) <= 1;
+    if(portrait !== (hMm >= wMm)){ const t = wMm; wMm = hMm; hMm = t; }
+    pageW = mmToPx(wMm, opts.dpi); pageH = mmToPx(hMm, opts.dpi);
+  }
+  if(size.kind === "photo") return {pageW, pageH, contentW:pageW, contentH:pageH, wMm, hMm, kind:"photo"};
+  const m = Math.max(0, Math.min(40, +opts.marginMm || 0));
+  const mx = mmToPx(m, opts.dpi);
+  const availW = Math.max(16, pageW - mx*2), availH = Math.max(16, pageH - mx*2);
+  const aspect = page ? quadAspect(page.corners) : availW / availH;
+  let cw = availW, ch = Math.round(availW / aspect);
+  if(ch > availH){ ch = availH; cw = Math.round(availH * aspect); }
+  return {pageW, pageH, contentW:Math.max(8, cw), contentH:Math.max(8, ch), wMm, hMm, kind:"doc"};
+}
+
+async function scanPersist(page){
+  await scanDbPut({id:page.id, blob:page.blob, rotate:page.rotate, corners:page.corners, filter:page.filter,
+    name:page.name, order:SC.pages.indexOf(page), addedAt:page.addedAt});
+}
+async function scanThumb(page){
+  const work = await workingCanvas(page);
+  const flat = warpQuad(work, page.corners, 210, Math.max(60, Math.round(210 / Math.max(0.2, quadAspect(page.corners)))));
+  applyFilter(flat, page.filter);
+  const blob = await canvasToBlob(flat, "image/jpeg", 0.7);
+  if(page.thumbUrl) URL.revokeObjectURL(page.thumbUrl);
+  page.thumbUrl = URL.createObjectURL(blob);
+}
+async function scanAdd(files){
+  const images = files.filter(f => /^image\//.test(f.type));
+  if(!images.length){ toast("Those were not pictures"); return; }
+  SC.adding = images.length; render();
+  for(const f of images){
+    const page = {id:scanUid(), blob:f, rotate:0, filter:"doc", addedAt:Date.now(),
+      name:(f.name || "").replace(/\.[a-z0-9]+$/i, "").replace(/^(IMG|PXL|DSC)[_-]?/i, "Scan ") || "Scan", corners:null};
+    try {
+      page.corners = autoCorners(await workingCanvas(page));
+    } catch(e){ toast("One picture could not be opened"); continue; }
+    SC.pages.push(page);
+    await scanPersist(page);
+    await scanThumb(page);
+    SC.adding--; render();
+  }
+  SC.adding = 0;
+  render();
+}
+function scanMove(i, dir){
+  const j = i + dir;
+  if(j < 0 || j >= SC.pages.length) return;
+  const t = SC.pages[i]; SC.pages[i] = SC.pages[j]; SC.pages[j] = t;
+  SC.pages.forEach(scanPersist);
+  render();
+}
+async function scanRemove(page){
+  SC.pages = SC.pages.filter(p => p !== page);
+  if(page.thumbUrl) URL.revokeObjectURL(page.thumbUrl);
+  await scanDbDel(page.id);
+  SC.pages.forEach(scanPersist);
+  render();
+}
+function scanPicker(capture){
+  const input = el("input", {type:"file", accept:"image/*", multiple:"multiple", style:"display:none",
+    onchange:e => { const files = [...e.target.files]; e.target.value = ""; scanAdd(files); }});
+  if(capture) input.setAttribute("capture", "environment");
+  return input;
+}
+const scanDay = t => new Date(t).toLocaleDateString(undefined, {day:"numeric", month:"short", year:"numeric"});
+
+function viewScan(){
+  if(!SC.loaded){ scanLoad(); return el("div", null, topbar("Scan", "Opening your pages…"), thinkingBlock("Loading…")); }
+  if(S.route.id){
+    const page = SC.pages.find(p => p.id === S.route.id);
+    if(page) return viewScanEditor(page);
+  }
+  const camera = scanPicker(true), picker = scanPicker(false);
+  const n = SC.pages.length;
+  const head = topbar("Scan", n ? n + " " + pluralise(n, "page") + " · stays on this device" : "Documents and photos, to an exact size",
+    frag(
+      btn("Camera", {cls:"primary", icon:"camera", onClick:() => camera.click()}),
+      btn("Choose photos", {icon:"image", onClick:() => picker.click()}),
+      n ? btn("Make a file", {icon:"down", onClick:openScanExport, disabled:SC.adding > 0}) : null));
+
+  if(!n && !SC.adding){
+    return el("div", null, head, camera, picker,
+      empty("Nothing scanned yet",
+        "Photograph a bill, a recipe card, a form or a passport photo. Drag the corners to the page, then save it as a PDF, JPG or PNG — at A4, passport size or any size, and under a size limit if a website asks for one."));
+  }
+  const shown = SC.pages.map((p, i) => ({p:p, i:i})).filter(x => hits(S.ui.qScan, [x.p.name, scanDay(x.p.addedAt), "page " + (x.i + 1)]));
+  return el("div", null, head, camera, picker,
+    searchBox("scan-search", S.ui.qScan, "Search pages by name or date", v => S.ui.qScan = v),
+    SC.adding ? el("div", {style:"margin-bottom:12px"}, thinkingBlock("Finding the edges of " + SC.adding + " " + pluralise(SC.adding, "picture") + "…")) : null,
+    !shown.length ? noMatch("pages") :
+    el("div", {class:"sc-grid"}, shown.map(x => {
+      const p = x.p, i = x.i;
+      return el("div", {class:"sc-card"},
+        el("button", {type:"button", class:"sc-thumb", "aria-label":"Edit " + p.name, onclick:() => go("scan/" + p.id)},
+          p.thumbUrl ? el("img", {src:p.thumbUrl, alt:""}) : el("span", {class:"thinking"}, el("i"), el("i"), el("i")),
+          el("span", {class:"sc-num"}, String(i + 1))),
+        el("div", {class:"sc-name", title:p.name}, p.name),
+        el("div", {class:"sc-date"}, scanDay(p.addedAt)),
+        el("div", {class:"sc-tools"},
+          el("button", {type:"button", title:"Move earlier", "aria-label":"Move earlier", disabled:i === 0, onclick:() => scanMove(i, -1)}, "↑"),
+          el("button", {type:"button", title:"Move later", "aria-label":"Move later", disabled:i === n - 1, onclick:() => scanMove(i, 1)}, "↓"),
+          el("button", {type:"button", title:"Edit", onclick:() => go("scan/" + p.id)}, "Edit"),
+          el("button", {type:"button", title:"Remove", "aria-label":"Remove", onclick:() => confirmDelete("this page", () => scanRemove(p))}, "✕")));
+    })),
+    el("div", {class:"hint", style:"margin-top:14px"},
+      "A PDF holds every page in this order. JPG and PNG save one page — the one you last opened."));
+}
+
+/* ---- editor: drag the corners ---- */
+function viewScanEditor(page){
+  SC.lastOpened = page.id;
+  const canvas = el("canvas");
+  const overlay = el("div", {class:"sc-overlay"});
+  const magCanvas = el("canvas", {width:"104", height:"104"});
+  const mag = el("div", {class:"sc-mag"}, magCanvas);
+  const stage = el("div", {class:"sc-stage"}, canvas, overlay, mag);
+  const refresh = async () => { await scanPersist(page); await scanThumb(page); };
+  const i = SC.pages.indexOf(page);
+
+  const wrap = el("div", null,
+    topbar(page.name, "Page " + (i + 1) + " of " + SC.pages.length + " · drag the four corners to the edges of the page",
+      frag(btn("All pages", {cls:"ghost", icon:"back", onClick:() => { SC.edit = null; go("scan"); }}),
+           btn("Done", {cls:"primary", icon:"check", onClick:() => { SC.edit = null; go("scan"); }}))),
+    stage,
+    el("div", {class:"row", style:"margin-top:12px;flex-wrap:wrap"},
+      btn("Auto edges", {icon:"wand", onClick:async () => {
+        page.corners = autoCorners(await workingCanvas(page)); await refresh(); scanDraw();
+      }}),
+      btn("Whole photo", {icon:"frame", onClick:async () => {
+        const w = await workingCanvas(page);
+        page.corners = [{x:0,y:0},{x:w.width,y:0},{x:w.width,y:w.height},{x:0,y:w.height}];
+        await refresh(); scanDraw();
+      }}),
+      btn("Rotate", {icon:"rotate", onClick:async () => {
+        rotatePage(page, await workingCanvas(page)); await refresh();
+        await scanSetup(page, canvas, overlay, mag, magCanvas);
+      }})),
+    el("div", {style:"margin-top:16px"},
+      el("div", {class:"eyebrow", style:"margin-bottom:6px"}, "How it should look"),
+      el("div", {class:"seg"}, FILTERS.map(f =>
+        el("button", {type:"button", class: page.filter === f.id ? "on" : "", onclick:async () => {
+          page.filter = f.id; await refresh(); render();
+        }}, f.label)))),
+    el("div", {class:"grid2", style:"margin-top:16px;align-items:end"},
+      field("Name", el("input", {type:"text", id:"sc-name", value:page.name,
+        onchange:async e => { page.name = e.target.value.trim() || "Scan"; await scanPersist(page); render(); }})),
+      el("div", {class:"row"},
+        btn("Make a file", {icon:"down", onClick:openScanExport}),
+        S.sampleReady ? btn("Read as a recipe", {icon:"spark", onClick:() => scanToRecipe(page)}) : null)));
+
+  setTimeout(() => scanSetup(page, canvas, overlay, mag, magCanvas), 0);
+  return wrap;
+}
+async function scanSetup(page, canvas, overlay, mag, magCanvas){
+  if(!canvas.isConnected) return;
+  const work = await workingCanvas(page);
+  const maxW = Math.min(canvas.parentNode.clientWidth || 640, 900);
+  const maxH = Math.max(260, Math.round(window.innerHeight * 0.55));
+  const scale = Math.min(maxW / work.width, maxH / work.height, 1);
+  canvas.width = Math.round(work.width * scale);
+  canvas.height = Math.round(work.height * scale);
+  SC.edit = {page, work, scale, canvas, overlay, mag, magCanvas, handles:[]};
+  overlay.textContent = "";
+  page.corners.forEach((c, idx) => {
+    const h = el("div", {class:"sc-handle", role:"slider", "aria-label":"Corner " + (idx + 1)});
+    h.addEventListener("pointerdown", ev => scanDrag(ev, idx, h));
+    overlay.append(h);
+    SC.edit.handles.push(h);
+  });
+  scanDraw();
+}
+function scanDraw(){
+  const E = SC.edit;
+  if(!E || !E.canvas.isConnected) return;
+  const {page, work, scale, canvas, overlay, handles} = E;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(work, 0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.beginPath();
+  page.corners.forEach((c, i) => { const x = c.x * scale, y = c.y * scale; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  ctx.closePath();
+  ctx.strokeStyle = "#E7A6D0"; ctx.lineWidth = 2; ctx.setLineDash([7, 5]); ctx.stroke();
+  ctx.fillStyle = "rgba(231,166,208,.14)"; ctx.fill();
+  ctx.restore();
+  const box = canvas.getBoundingClientRect(), obox = overlay.getBoundingClientRect();
+  const dx = box.left - obox.left, dy = box.top - obox.top;
+  const shown = box.width / canvas.width;
+  handles.forEach((h, i) => {
+    h.style.left = (dx + page.corners[i].x * scale * shown) + "px";
+    h.style.top = (dy + page.corners[i].y * scale * shown) + "px";
+  });
+}
+function scanDrag(ev, idx, handle){
+  const E = SC.edit;
+  if(!E) return;
+  ev.preventDefault();
+  handle.setPointerCapture(ev.pointerId);
+  const {page, work, scale, canvas, mag, magCanvas} = E;
+  mag.style.display = "block";
+  const moveTo = e => {
+    const box = canvas.getBoundingClientRect();
+    const shown = box.width / canvas.width;
+    const x = Math.max(0, Math.min(work.width, (e.clientX - box.left) / shown / scale));
+    const y = Math.max(0, Math.min(work.height, (e.clientY - box.top) / shown / scale));
+    page.corners[idx] = {x, y};
+    scanDraw();
+    /* A loupe, because a fingertip covers the very corner being placed. */
+    const m = magCanvas.getContext("2d");
+    const r = Math.max(30, Math.round(Math.min(work.width, work.height) / 12));
+    m.fillStyle = "#000"; m.fillRect(0, 0, 104, 104);
+    m.drawImage(work, x - r, y - r, r*2, r*2, 0, 0, 104, 104);
+    m.strokeStyle = "#E7A6D0"; m.lineWidth = 1.5;
+    m.beginPath(); m.moveTo(52, 36); m.lineTo(52, 68); m.moveTo(36, 52); m.lineTo(68, 52); m.stroke();
+    const sb = canvas.parentNode.getBoundingClientRect();
+    const onLeft = (e.clientX - sb.left) < sb.width / 2;
+    mag.style.left = onLeft ? "auto" : "10px";
+    mag.style.right = onLeft ? "10px" : "auto";
+  };
+  moveTo(ev);
+  const onUp = async () => {
+    handle.removeEventListener("pointermove", moveTo);
+    handle.removeEventListener("pointerup", onUp);
+    handle.removeEventListener("pointercancel", onUp);
+    mag.style.display = "none";
+    await scanPersist(page); await scanThumb(page);
+  };
+  handle.addEventListener("pointermove", moveTo);
+  handle.addEventListener("pointerup", onUp);
+  handle.addEventListener("pointercancel", onUp);
+}
+window.addEventListener("resize", () => { if(S.route && S.route.name === "scan" && S.route.id) scanDraw(); });
+
+/* A scanned page can go straight into the recipe importer. */
+async function scanToRecipe(page){
+  const geo = pageGeometry(page, {sizeId:"a4", dpi:150, marginMm:0, orient:"auto"});
+  const canvas = await composePage(page, {pageW:geo.contentW, pageH:geo.contentH, contentW:geo.contentW, contentH:geo.contentH});
+  const blob = await canvasToBlob(canvas, "image/jpeg", 0.85);
+  openFileImport([new File([blob], page.name + ".jpg", {type:"image/jpeg"})]);
+}
+
+/* ---- making the file ---- */
+const scanFileBase = () => {
+  const d = new Date();
+  return "scan-" + d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+};
+let scanProgressEl = null;
+const scanProgress = t => { if(scanProgressEl) scanProgressEl.textContent = t; };
+async function scanPdf(opts, limitBytes){
+  let budget = limitBytes ? Math.max(24*1024, Math.floor(limitBytes / SC.pages.length)) : 0;
+  let blob = null, items = null;
+  for(let attempt = 0; attempt < 3; attempt++){
+    items = [];
+    for(let i = 0; i < SC.pages.length; i++){
+      scanProgress("Page " + (i + 1) + " of " + SC.pages.length + (attempt ? " · squeezing" : ""));
+      await new Promise(r => setTimeout(r, 0));
+      const page = SC.pages[i];
+      const geo = pageGeometry(page, opts);
+      const canvas = await composePage(page, geo);
+      const enc = await encodeUnder(canvas, "image/jpeg", budget);
+      items.push({jpeg:new Uint8Array(await enc.blob.arrayBuffer()), pxW:canvas.width, pxH:canvas.height,
+        wPt:mmToPt(geo.wMm), hPt:mmToPt(geo.hMm), drawX:0, drawY:0, drawW:mmToPt(geo.wMm), drawH:mmToPt(geo.hMm)});
+    }
+    blob = buildPdf(items);
+    if(!limitBytes || blob.size <= limitBytes) break;
+    /* The wrapper costs a little on top of the pictures; aim lower and retry. */
+    budget = Math.max(16*1024, Math.floor(budget * (limitBytes / blob.size) * 0.92));
+  }
+  return {blob, pages:items.length, fits:!limitBytes || blob.size <= limitBytes};
+}
+async function scanBuild(){
+  const o = SC.opts;
+  const limitBytes = o.limitKb > 0 ? Math.round(o.limitKb * 1024) : 0;
+  const base = (o.filename || scanFileBase()).replace(/[\\/:*?"<>|]+/g, "-").trim() || scanFileBase();
+  if(o.format === "pdf"){
+    const r = await scanPdf(o, limitBytes);
+    return {blob:r.blob, name:base + ".pdf", pages:r.pages, fits:r.fits};
+  }
+  const page = SC.pages.find(p => p.id === SC.lastOpened) || SC.pages[0];
+  scanProgress("Building the picture…");
+  await new Promise(r => setTimeout(r, 0));
+  const canvas = await composePage(page, pageGeometry(page, o));
+  const type = o.format === "png" ? "image/png" : "image/jpeg";
+  const enc = await encodeUnder(canvas, type, limitBytes, () => scanProgress("Squeezing…"));
+  return {blob:enc.blob, name:base + (type === "image/png" ? ".png" : ".jpg"), pages:1, fits:enc.fits, shrunk:enc.scale < 1};
+}
+
+function openScanExport(){
+  if(!SC.pages.length) return;
+  SC.out = null; SC.busy = false;
+  const o = SC.opts;
+  const seg = (options, current, onPick) => el("div", {class:"seg"}, options.map(opt =>
+    el("button", {type:"button", class: String(current) === String(opt.value) ? "on" : "",
+      onclick:() => { onPick(opt.value); renderModal(); }}, opt.label)));
+  const make = async () => {
+    SC.busy = true; renderModal();
+    try { SC.out = await scanBuild(); }
+    catch(err){ console.error(err); toast("That did not work: " + (err && err.message ? err.message : "unknown error")); }
+    SC.busy = false; renderModal();
+  };
+  openModal({
+    title:"Make a file", noAutofocus:true,
+    body: () => {
+      const size = sizeById(o.sizeId);
+      const page = SC.pages.find(p => p.id === SC.lastOpened) || SC.pages[0];
+      const geo = pageGeometry(page, o);
+      const isPhoto = size.kind === "photo";
+      if(SC.out) return frag(
+        el("div", {class:"panel"},
+          el("div", {class:"kv"}, el("span", null, "File"), el("b", null, SC.out.name)),
+          el("div", {class:"kv"}, el("span", null, "Size"), el("b", null, fmtBytes(SC.out.blob.size))),
+          SC.out.pages > 1 ? el("div", {class:"kv"}, el("span", null, "Pages"), el("b", null, String(SC.out.pages))) : null,
+          o.limitKb > 0 ? el("div", {class:"kv"}, el("span", null, "Limit"),
+            SC.out.fits ? el("span", {class:"pill good"}, "under " + o.limitKb + " KB")
+                        : el("span", {class:"pill warn"}, "could not reach " + o.limitKb + " KB")) : null),
+        SC.out.shrunk ? el("div", {class:"hint"}, "The picture was made smaller in pixels to reach that limit.") : null,
+        inApp() ? el("div", {class:"hint"}, "Save puts it in your phone's Documents › KitchenBook folder. Share sends it to Drive, WhatsApp, email or Files.") : null);
+      return frag(
+        field("Paper or photo size", el("select", {onchange:e => { o.sizeId = e.target.value; renderModal(); }},
+          PAGE_SIZES.map(s => el("option", {value:s.id, selected:s.id === o.sizeId}, s.label)))),
+        o.sizeId === "custom" ? el("div", {class:"grid2"},
+          field("Width (mm)", el("input", {type:"number", min:"5", value:String(o.customW), oninput:e => { o.customW = parseFloat(e.target.value) || 0; }})),
+          field("Height (mm)", el("input", {type:"number", min:"5", value:String(o.customH), oninput:e => { o.customH = parseFloat(e.target.value) || 0; }}))) : null,
+        !isPhoto && !size.px ? el("div", null,
+          el("div", {class:"eyebrow", style:"margin-bottom:6px"}, "Which way up"),
+          seg([{value:"auto", label:"Match the scan"}, {value:"portrait", label:"Portrait"}, {value:"landscape", label:"Landscape"}], o.orient, v => o.orient = v)) : null,
+        el("div", null,
+          el("div", {class:"eyebrow", style:"margin-bottom:6px"}, "Detail"),
+          seg(DPIS.map(d => ({value:d, label:d + " dpi"})), o.dpi, v => o.dpi = +v)),
+        !isPhoto ? field("White border (mm)", el("input", {type:"number", min:"0", max:"40", value:String(o.marginMm),
+          oninput:e => { o.marginMm = parseFloat(e.target.value) || 0; }})) : null,
+        el("div", null,
+          el("div", {class:"eyebrow", style:"margin-bottom:6px"}, "File type"),
+          seg([{value:"pdf", label:"PDF" + (SC.pages.length > 1 ? " · all " + SC.pages.length + " pages" : "")},
+               {value:"jpg", label:"JPG image"}, {value:"png", label:"PNG image"}], o.format, v => o.format = v)),
+        o.format !== "pdf" && SC.pages.length > 1
+          ? el("div", {class:"hint"}, "An image holds one page: " + page.name + ". Open another page first to save that one instead.") : null,
+        el("div", null,
+          el("div", {class:"eyebrow", style:"margin-bottom:6px"}, "Keep it under"),
+          seg([{value:0, label:"No limit"}, {value:50, label:"50 KB"}, {value:100, label:"100 KB"}, {value:200, label:"200 KB"},
+               {value:500, label:"500 KB"}, {value:1024, label:"1 MB"}, {value:2048, label:"2 MB"}], o.limitKb, v => o.limitKb = +v)),
+        o.format === "png" && o.limitKb ? el("div", {class:"hint"}, "PNG cannot be squeezed to a size. Choose JPG or PDF for a limit.") : null,
+        field("File name", el("input", {type:"text", placeholder:scanFileBase(), value:o.filename, oninput:e => { o.filename = e.target.value; }})),
+        el("div", {class:"hint"},
+          (size.px ? size.px + " × " + size.px + " px" : Math.round(geo.wMm) + " × " + Math.round(geo.hMm) + " mm") +
+          "  ·  " + geo.pageW + " × " + geo.pageH + " px  ·  " +
+          (o.format === "pdf" ? SC.pages.length + " " + pluralise(SC.pages.length, "page") : "1 page")),
+        SC.busy ? el("span", {class:"thinking"}, el("i"), el("i"), el("i"), scanProgressEl = el("span", null, "Working…")) : null);
+    },
+    footer: () => SC.out
+      ? frag(
+          btn("Change something", {cls:"ghost", onClick:() => { SC.out = null; renderModal(); }}),
+          canShare(SC.out.name, SC.out.blob) ? btn("Share", {icon:"share", onClick:() => shareBlob(SC.out.name, SC.out.blob)}) : null,
+          btn(inApp() ? "Save to phone" : "Download", {cls:"primary", icon:"down", onClick:() => saveBlob(SC.out.name, SC.out.blob)}))
+      : frag(
+          btn("Cancel", {cls:"ghost", onClick:closeModal}),
+          btn(SC.busy ? "Working…" : "Make the file", {cls:"primary", icon:"check", disabled:SC.busy, onClick:make}))
+  });
+}
+
 /* ======================= self test ======================= */
-function runSelfTest(){
+async function runSelfTest(){
   const out = [];
   let pass = 0, fail = 0;
   const near = (a, b, tol) => isFinite(a) && Math.abs(a-b) <= (tol == null ? 0.0001 : tol);
@@ -2974,6 +4492,148 @@ function runSelfTest(){
   check("javascript: links are refused", safeUrl("javascript:alert(1)") === null);
 
   out.push("");
+  out.push("");
+  out.push("IMPORTING FILES");
+  const csvRows = parseDelimited('Recipe,Ingredient,Qty,Unit,Servings\n"Dal, yellow",Toor dal,200,g,4\n,Onion,1,each,\n,Ghee,2,tbsp,\nChai,Milk,500,ml,2\n');
+  check("CSV keeps a quoted comma inside one cell", csvRows.length === 5 && csvRows[1][0] === "Dal, yellow", csvRows[1]);
+  const fromCsv = tableRecipes(csvRows);
+  check("a Recipe + Ingredient sheet gives two recipes, no AI", fromCsv && fromCsv.length === 2, fromCsv && fromCsv.map(r => r.name));
+  check("blank recipe cells belong to the recipe above", fromCsv && fromCsv[0].lines.length === 3, fromCsv && fromCsv[0].lines.length);
+  check("quantity and unit columns are read", fromCsv && fromCsv[0].lines[0].qty === 200 && fromCsv[0].lines[0].unit === "g" &&
+    fromCsv[0].lines[2].unit === "tbsp", fromCsv && fromCsv[0].lines);
+  check("servings column is read", fromCsv && fromCsv[0].servings === 4 && fromCsv[1].servings === 2);
+  const loose = tableRecipes(parseDelimited("Ingredient,Qty\nFlour,500\n"));
+  check("a sheet with no Recipe column is left to the AI", loose === null, loose);
+  const tsv = parseDelimited("Recipe\tIngredient\nToast\t2 slices bread\n");
+  check("tab-separated text works too", tsv[1][1] === "2 slices bread");
+  const inline = tableRecipes(parseDelimited("Dish,Ingredients\nOmelette,3 eggs\nOmelette,10 g butter\n"));
+  check("\"250 g butter\" written in one cell is split into amount and unit",
+    inline && inline.length === 1 && inline[0].lines[1].qty === 10 && inline[0].lines[1].unit === "g", inline);
+
+  /* build real .docx / .xlsx archives here, stored and deflated */
+  async function makeZip(files, deflate){
+    const enc = new TextEncoder(), parts = [], central = [];
+    let offset = 0, count = 0;
+    for(const name in files){
+      const nameB = enc.encode(name);
+      let data = enc.encode(files[name]);
+      const usize = data.length;
+      let method = 0;
+      if(deflate){
+        data = new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer());
+        method = 8;
+      }
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(8, method, true);
+      lh.setUint32(18, data.length, true); lh.setUint32(22, usize, true); lh.setUint16(26, nameB.length, true);
+      parts.push(new Uint8Array(lh.buffer), nameB, data);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(10, method, true);
+      ch.setUint32(20, data.length, true); ch.setUint32(24, usize, true); ch.setUint16(28, nameB.length, true);
+      ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), nameB);
+      offset += 30 + nameB.length + data.length;
+      count++;
+    }
+    const cdSize = central.reduce((a, b) => a + b.length, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, count, true); end.setUint16(10, count, true);
+    end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [new Uint8Array(end.buffer)]));
+  }
+  const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  const docXml = '<?xml version="1.0"?><w:document ' + W + '><w:body>' +
+    '<w:p><w:r><w:t>Banana </w:t></w:r><w:r><w:t>pancakes</w:t></w:r></w:p>' +
+    '<w:tbl><w:tr><w:tc><w:p><w:r><w:t>200 g</w:t></w:r></w:p></w:tc><w:tc><w:p><w:r><w:t>flour</w:t></w:r></w:p></w:tc></w:tr></w:tbl>' +
+    '<w:p><w:r><w:t>Mix</w:t></w:r><w:r><w:tab/><w:t>well</w:t></w:r></w:p></w:body></w:document>';
+  try {
+    const docx = await makeZip({"[Content_Types].xml":"<Types/>", "word/document.xml":docXml}, true);
+    const docText = await docxText(await readZip(await docx.arrayBuffer()));
+    check("a Word file's paragraphs are read in order", /^Banana pancakes\n/.test(docText), docText);
+    check("a Word table row reads as cells", docText.indexOf("200 g | flour") >= 0, docText);
+    check("a tab inside a paragraph is kept", docText.indexOf("Mix\twell") >= 0, docText);
+  } catch(e){ check("a Word file opens", false, String(e && (e.message || e.code))); }
+
+  const X = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+  const R = 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const xlsxFiles = {
+    "xl/workbook.xml": '<workbook ' + X + ' ' + R + '><sheets><sheet name="Menu" sheetId="1" r:id="rId1"/></sheets></workbook>',
+    "xl/_rels/workbook.xml.rels": '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Target="worksheets/sheet1.xml" Type="x"/></Relationships>',
+    "xl/sharedStrings.xml": '<sst ' + X + '><si><t>Recipe</t></si><si><t>Ingredient</t></si><si><t>Qty</t></si><si><t>Unit</t></si>' +
+      '<si><t>Chicken curry</t></si><si><t>Chicken thigh</t></si><si><t>kg</t></si><si><r><t>On</t></r><r><t>ion</t></r></si><si><t>each</t></si></sst>',
+    "xl/worksheets/sheet1.xml": '<worksheet ' + X + '><sheetData>' +
+      '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="C1" t="s"><v>2</v></c><c r="D1" t="s"><v>3</v></c></row>' +
+      '<row r="2"><c r="A2" t="s"><v>4</v></c><c r="B2" t="s"><v>5</v></c><c r="C2"><v>1.5</v></c><c r="D2" t="s"><v>6</v></c></row>' +
+      '<row r="3"><c r="B3" t="s"><v>7</v></c><c r="C3"><v>2</v></c><c r="D3" t="s"><v>8</v></c></row>' +
+      '</sheetData></worksheet>'
+  };
+  try {
+    const xlsx = await makeZip(xlsxFiles, false);
+    const sheets = await xlsxSheets(await readZip(await xlsx.arrayBuffer()));
+    check("an Excel sheet is found by its name", sheets.length === 1 && sheets[0].name === "Menu", sheets.map(s => s.name));
+    check("an empty first cell keeps the columns lined up", sheets[0].rows[2][0] === "" && sheets[0].rows[2][1] === "Onion", sheets[0].rows[2]);
+    const g = await gatherImport([new File([await makeZip(xlsxFiles, true)], "menu.xlsx")]);
+    check("an Excel recipe sheet imports with no AI", g.direct.length === 1 && g.direct[0].name === "Chicken curry" &&
+      g.direct[0].lines.length === 2 && g.direct[0].lines[0].qty === 1.5 && g.direct[0].lines[0].unit === "kg" &&
+      !g.text && !g.attach.length, g);
+  } catch(e){ check("an Excel file opens", false, String(e && (e.message || e.code))); }
+
+  const oldDoc = await gatherImport([new File([new Uint8Array([0xD0,0xCF,0x11,0xE0,0xA1,0xB1,0x1A,0xE1,0,0])], "old.doc")]);
+  check("an old .doc asks to be saved as .docx", oldDoc.notes.length === 1 && /\.docx/.test(oldDoc.notes[0]), oldDoc.notes);
+  const pdfIn = await gatherImport([new File(["%PDF-1.4"], "card.pdf")]);
+  check("a PDF goes to the AI, typed as a PDF", pdfIn.attach.length === 1 && pdfIn.attach[0].type === "application/pdf");
+  const txtIn = await gatherImport([new File(["Lemon rice\n1 cup rice"], "note.txt", {type:"text/plain"})]);
+  check("plain text is passed on as text", /Lemon rice/.test(txtIn.text) && !txtIn.attach.length);
+  check("the AI's recipes list is turned into recipe lines",
+    fromAiRecipe({name:"X", servings:2, ingredients:["250 g plain flour"], steps:["a"]}).lines[0].qty === 250);
+
+  out.push("");
+  out.push("SCANNING");
+  check("A4 at 300 dpi is 2480 × 3508 px", mmToPx(210, 300) === 2480 && mmToPx(297, 300) === 3508);
+  check("A4 is 595 × 842 pt in a PDF", near(mmToPt(210), 595.27, 0.01) && near(mmToPt(297), 841.89, 0.01));
+  const sq = [{x:10,y:20},{x:110,y:15},{x:120,y:95},{x:5,y:90}];
+  const hm = squareToQuad(sq);
+  check("straightening maps each corner to the one you dragged",
+    [[0,0],[1,0],[1,1],[0,1]].map(p => mapPoint(hm, p[0], p[1])).every((c, i) => near(c.x, sq[i].x, 0.01) && near(c.y, sq[i].y, 0.01)));
+  const shot = document.createElement("canvas");
+  shot.width = 400; shot.height = 300;
+  const sctx = shot.getContext("2d");
+  sctx.fillStyle = "#101010"; sctx.fillRect(0, 0, 400, 300);
+  sctx.fillStyle = "#f4f4f4"; sctx.fillRect(60, 40, 260, 210);
+  const fc = autoCorners(shot);
+  check("a pale page on a dark table is found within 20 px",
+    Math.abs(fc[0].x - 60) < 20 && Math.abs(fc[0].y - 40) < 20 && Math.abs(fc[2].x - 320) < 20 && Math.abs(fc[2].y - 250) < 20, fc);
+  const tall = {corners:[{x:0,y:0},{x:300,y:0},{x:300,y:400},{x:0,y:400}]};
+  const pp = pageGeometry(tall, {sizeId:"pp3545", dpi:300, marginMm:6, orient:"auto"});
+  check("a passport photo is 413 × 531 px at 300 dpi, no border",
+    pp.pageW === 413 && pp.pageH === 531 && pp.contentW === pp.pageW, pp);
+  const a4 = pageGeometry(tall, {sizeId:"a4", dpi:200, marginMm:6, orient:"auto"});
+  check("A4 keeps the white border and the scan's shape",
+    a4.pageW === 1654 && a4.contentW <= a4.pageW - mmToPx(6, 200)*2 + 1 && near(a4.contentW / a4.contentH, 0.75, 0.02), a4);
+  const wideScan = {corners:[{x:0,y:0},{x:400,y:0},{x:400,y:300},{x:0,y:300}]};
+  check("a landscape scan turns A4 sideways", (g => g.pageW > g.pageH)(pageGeometry(wideScan, {sizeId:"a4", dpi:150, marginMm:0, orient:"auto"})));
+  const custom = pageGeometry(wideScan, {sizeId:"custom", customW:300, customH:200, dpi:100, marginMm:0, orient:"portrait"});
+  check("a custom size asked for portrait comes out portrait", custom.pageH > custom.pageW, custom);
+
+  const sample = document.createElement("canvas");
+  sample.width = 600; sample.height = 800;
+  const smx = sample.getContext("2d");
+  const grad = smx.createLinearGradient(0, 0, 600, 800);
+  grad.addColorStop(0, "#ffffff"); grad.addColorStop(1, "#6e2e58");
+  smx.fillStyle = grad; smx.fillRect(0, 0, 600, 800);
+  smx.fillStyle = "#000"; smx.font = "40px serif";
+  for(let i = 0; i < 12; i++) smx.fillText("Invoice line " + i, 30, 80 + i*60);
+  const squeezed = await encodeUnder(sample, "image/jpeg", 40 * 1024);
+  check("a 40 KB limit is met", squeezed.fits && squeezed.blob.size <= 40*1024, squeezed.blob.size);
+  const plainJ = await encodeUnder(sample, "image/jpeg", 0);
+  const jb = new Uint8Array(await plainJ.blob.arrayBuffer());
+  const pitem = {jpeg:jb, pxW:600, pxH:800, wPt:mmToPt(210), hPt:mmToPt(297), drawX:0, drawY:0, drawW:mmToPt(210), drawH:mmToPt(297)};
+  const pdf = buildPdf([pitem, pitem]);
+  const whole = await pdf.text();
+  check("the PDF starts with %PDF and ends with %%EOF", whole.indexOf("%PDF-") === 0 && /%%EOF\s*$/.test(whole));
+  check("a two-page PDF declares two pages", /\/Count 2/.test(whole));
+
   out.push(fail ? fail + " FAILED, " + pass + " passed" : "All " + pass + " checks passed.");
 
   document.getElementById("root").append(
