@@ -1787,8 +1787,14 @@ function viewSettings(){
           AI.provider() === "gemini"
             ? frag(
                 el("div", {class:"keyrow", style:"margin-top:12px"},
-                  field("Gemini API key", el("input", {type:"password", id:"gemini-key", placeholder:"AIza…", autocomplete:"off",
-                    value:AI.geminiKey(), onchange:e => AI.setGeminiKey(e.target.value)}))),
+                  field("Gemini API key", el("input", {type:"password", id:"gemini-key", placeholder:"AQ.… or AIza…", autocomplete:"off",
+                    value:AI.geminiKey(), onchange:e => AI.setGeminiKey(e.target.value)})),
+                  btn("Save", {cls:"primary", onClick:() => {
+                    const box = document.getElementById("gemini-key");
+                    AI.setGeminiKey(box ? box.value : "");
+                    toast(AI.geminiKey() ? "Key saved" : "The box is empty");
+                  }})),
+                aiTestRow(),
                 el("div", {class:"hint", style:"margin-top:8px"},
                   "Free key: ", el("a", {href:"https://aistudio.google.com/apikey", target:"_blank", rel:"noopener noreferrer"}, "aistudio.google.com/apikey"),
                   " — sign in with a Google account, press Create API key, paste it here."),
@@ -1803,7 +1809,13 @@ function viewSettings(){
             : frag(
                 el("div", {class:"keyrow", style:"margin-top:12px"},
                   field("Anthropic API key", el("input", {type:"password", id:"api-key", placeholder:"sk-ant-…", autocomplete:"off",
-                    value:AI.claudeKey(), onchange:e => AI.setKey(e.target.value)}))),
+                    value:AI.claudeKey(), onchange:e => AI.setKey(e.target.value)})),
+                  btn("Save", {cls:"primary", onClick:() => {
+                    const box = document.getElementById("api-key");
+                    AI.setKey(box ? box.value : "");
+                    toast(AI.claudeKey() ? "Key saved" : "The box is empty");
+                  }})),
+                aiTestRow(),
                 el("div", {class:"hint", style:"margin-top:8px"},
                   "Get one at console.anthropic.com. Asking Claude costs money on your own account.")),
           el("div", {class:"hint", style:"margin-top:12px"},
@@ -2313,10 +2325,12 @@ const AI = {
   geminiKey(){ return this.get(GEMINI_KEY_STORE); },
   geminiModel(){ return this.get(GEMINI_MODEL_STORE) || GEMINI_DEFAULT_MODEL; },
   key(){ return this.provider() === "claude" ? this.claudeKey() : this.geminiKey(); },
-  refresh(){ this._client = null; S.sampleReady = S.imagesOk = !!this.key(); render(); },
+  refresh(){ this._client = null; aiTest = null; S.sampleReady = S.imagesOk = !!this.key(); render(); },
   setProvider(p){ this.put(PROVIDER_STORE, p); this.refresh(); },
-  setKey(v){ this.put(KEY_STORE, v); this.refresh(); },
-  setGeminiKey(v){ this.put(GEMINI_KEY_STORE, v); this.refresh(); },
+  /* Pasted keys often carry a space, a line break or quote marks along. */
+  clean(v){ return String(v || "").replace(/[\s"'“”‘’]+/g, ""); },
+  setKey(v){ this.put(KEY_STORE, this.clean(v)); this.refresh(); },
+  setGeminiKey(v){ this.put(GEMINI_KEY_STORE, this.clean(v)); this.refresh(); },
   setGeminiModel(v){ this.put(GEMINI_MODEL_STORE, v); },
   async client(){
     const key = this.claudeKey();
@@ -2477,6 +2491,13 @@ async function callGemini(prompt, opts){
   let res;
   try {
     res = await send(body);
+    /* Newer "AQ." keys are refused on some routes when sent as a header; Google
+       also accepts the key in the address, so try that once before giving up. */
+    if(res.status === 401 || res.status === 403){
+      const viaUrl = await fetch(GEMINI_URL + encodeURIComponent(AI.geminiModel()) + ":generateContent?key=" + encodeURIComponent(key), {
+        method:"POST", signal:o.signal, headers:{"content-type":"application/json"}, body:JSON.stringify(body)});
+      if(viaUrl.ok || (viaUrl.status !== 401 && viaUrl.status !== 403)) res = viaUrl;
+    }
     /* If this model rejects the schema, ask again with plain JSON instead. */
     if(res.status === 400 && body.generationConfig.responseSchema){
       const raw = await res.clone().text();
@@ -2537,6 +2558,24 @@ async function initSample(){
   render();
 }
 
+/* Settings → "Test the key": one tiny request, and the plain answer. */
+let aiTest = null;   /* {busy} | {ok, text} */
+function aiTestRow(){
+  if(!AI.key()) return null;
+  return el("div", {class:"row", style:"margin-top:10px;align-items:center"},
+    btn(aiTest && aiTest.busy ? "Testing…" : "Test the key", {cls:"sm", icon:"check", disabled:!!(aiTest && aiTest.busy), onClick:async () => {
+      aiTest = {busy:true}; render();
+      try {
+        const reply = await callAI("Reply with only the word OK.", {});
+        aiTest = {ok:true, text:"It works — " + AI.label() + " replied “" + String(reply).trim().slice(0, 40) + "”."};
+      } catch(e){
+        aiTest = {ok:false, text:sampleErrorText(e)};
+      }
+      render();
+    }}),
+    aiTest && !aiTest.busy ? el("span", {class:"pill " + (aiTest.ok ? "good" : "bad"), style:"white-space:normal;font-family:var(--body)"}, aiTest.text) : null);
+}
+
 function sampleErrorText(e){
   const who = AI.label();
   const map = {
@@ -2555,7 +2594,9 @@ function sampleErrorText(e){
     file_type: "That kind of file cannot be read. Use a PDF, a photo, Word (.docx), Excel (.xlsx) or text.",
     cancelled: "Stopped."
   };
-  return (e && map[e.code]) || who + " could not answer just now.";
+  const base = (e && map[e.code]) || who + " could not answer just now.";
+  const said = e && e.message && /^(auth|model|invalid_request|upstream_error)$/.test(e.code) ? String(e.message).slice(0, 200) : "";
+  return said ? base + " " + who + " said: “" + said + "”" : base;
 }
 function tasteLine(){
   const t = S.settings.taste || {};
