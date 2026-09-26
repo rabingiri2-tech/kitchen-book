@@ -1031,6 +1031,10 @@ function viewToday(){
       el("b", null, "AI features are off. "),
       "Add a free Gemini key under Settings to switch on recipe writing, file import and bill scanning. Everything else works as normal.")));
 
+  if(S.update)
+    out.append(el("div", {class:"banner"}, el("div", null,
+      el("b", null, "Update ready. "), S.update.notes ? S.update.notes + " " : "",
+      el("button", {type:"button", class:"linkbtn", onclick:offerUpdate}, "Install it"))));
   out.append(searchBox("today-search", S.ui.qToday, "Search ideas and recipes", v => S.ui.qToday = v));
   if(String(S.ui.qToday || "").trim()){
     const q = S.ui.qToday;
@@ -1795,6 +1799,20 @@ function viewSettings(){
             exampleCount ? btn("Remove the " + exampleCount + " example rows", {cls:"danger", icon:"trash", onClick:removeExamples}) : null))),
 
       el("div", {class:"stack"},
+        el("div", {class:"panel"},
+          el("h3", null, "App version"),
+          el("div", {class:"kv"}, el("span", null, "This copy"),
+            el("b", null, stampedBuild() ? (buildDate(APP_BUILD) || APP_BUILD) : "web version")),
+          S.update ? el("div", {class:"kv"}, el("span", null, "Newest"),
+            el("span", {class:"pill good"}, buildDate(S.update.tag) || S.update.tag)) : null,
+          el("div", {class:"row", style:"margin-top:10px"},
+            S.update
+              ? btn("Update now", {cls:"primary sm", icon:"down", onClick:offerUpdate})
+              : btn(S.updateChecking ? "Checking…" : "Check for updates", {cls:"sm", icon:"check",
+                  disabled:!!S.updateChecking, onClick:() => checkForUpdate(true)})),
+          el("div", {class:"hint", style:"margin-top:10px"},
+            "The app checks by itself each time it opens. This link always downloads the newest version: ",
+            el("a", {href:LATEST_APK, onclick:e => { e.preventDefault(); openOutside(LATEST_APK); }}, "newest Kitchen Book APK"))),
         el("div", {class:"panel"},
           el("h3", null, "Where this is saved"),
           el("div", {class:"storepill", style:"margin-bottom:8px"}, el("i", {class:"dot"}), "On this device"),
@@ -5057,6 +5075,83 @@ async function runSelfTest(){
       out.join("\n")));
 }
 
+/* ======================= updates for the Android app =======================
+   Every APK is stamped with the name of its GitHub release when it is built
+   (the workflow replaces the placeholder below). On opening, the app asks
+   GitHub for the newest release; if it is newer, it offers to download it.
+   The update installs over the old app because every build is signed with
+   the same key, so recipes and scans stay. */
+const APP_BUILD = "__KB_BUILD__";
+const RELEASES_API = "https://api.github.com/repos/rabingiri2-tech/kitchen-book/releases/latest";
+const LATEST_APK = "https://github.com/rabingiri2-tech/kitchen-book/releases/latest/download/kitchen-book.apk";
+const UPDATE_STORE = LS + "update";
+const stampedBuild = () => /^build-\d{8}-\d{4}$/.test(APP_BUILD);
+function buildDate(tag){
+  const m = /^build-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/.exec(tag || "");
+  return m ? new Date(Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5])).toLocaleString(undefined,
+    {day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit"}) : "";
+}
+function updMemo(){ try { return JSON.parse(localStorage.getItem(UPDATE_STORE) || "{}"); } catch(e){ return {}; } }
+function setUpdMemo(patch){ try { localStorage.setItem(UPDATE_STORE, JSON.stringify(Object.assign(updMemo(), patch))); } catch(e){} }
+/* Open a link outside the app: in the Android app this hands it to the
+   phone's browser, which downloads the APK and offers to install it. */
+function openOutside(url){
+  if(inApp()) location.href = url;
+  else window.open(url, "_blank", "noopener");
+}
+async function checkForUpdate(manual){
+  if(!manual && !(inApp() && stampedBuild())) return;
+  S.updateChecking = true;
+  if(manual) render();
+  try {
+    const res = await fetch(RELEASES_API, {headers:{accept:"application/vnd.github+json"}, cache:"no-store"});
+    if(!res.ok) throw new Error("status " + res.status);
+    const rel = await res.json();
+    const tag = rel.tag_name || "";
+    const apk = (rel.assets || []).find(a => /\.apk$/i.test(a.name || ""));
+    setUpdMemo({checkedAt:Date.now()});
+    if(apk && stampedBuild() && tag > APP_BUILD){
+      /* the first line of the release notes says what changed */
+      const notes = String(rel.body || "").split(/\r?\n/).map(s => s.trim()).filter(Boolean)[0] || "";
+      S.update = {tag:tag, notes:/^download /i.test(notes) ? "" : notes, url:apk.browser_download_url};
+      const memo = updMemo();
+      const later = memo.laterTag === tag && memo.laterDay === todayISO();
+      if(manual || !later) offerUpdate();
+    } else {
+      S.update = null;
+      if(manual) toast(stampedBuild() ? "You have the newest version" : "This copy is the web version — it updates itself");
+    }
+  } catch(e){
+    if(manual) toast("Could not reach GitHub to check — are you online?");
+  }
+  S.updateChecking = false;
+  render();
+}
+function offerUpdate(){
+  const u = S.update;
+  if(!u) return;
+  openModal({
+    title:"Update ready",
+    body: () => frag(
+      el("p", {style:"margin:0 0 10px"}, "A new version of Kitchen Book is ready."),
+      u.notes ? el("div", {class:"panel", style:"padding:12px"}, el("div", {class:"eyebrow", style:"margin-bottom:4px"}, "What's new"), u.notes) : null,
+      el("div", {class:"kv", style:"margin-top:8px"}, el("span", null, "You have"), el("b", null, buildDate(APP_BUILD) || APP_BUILD)),
+      el("div", {class:"kv"}, el("span", null, "New version"), el("b", null, buildDate(u.tag) || u.tag)),
+      el("div", {class:"hint", style:"margin-top:10px"},
+        "Update now downloads it in your browser. Open the download and tap Install — it goes over this app, and your recipes, prices and scans stay.")),
+    footer: () => frag(
+      btn("Later", {cls:"ghost", onClick:() => { setUpdMemo({laterTag:u.tag, laterDay:todayISO()}); closeModal(); }}),
+      btn("Update now", {cls:"primary", icon:"down", onClick:() => { closeModal(); openOutside(u.url); }}))
+  });
+}
+/* check when the app opens, and when it comes back to the front after a while */
+function watchForUpdates(){
+  setTimeout(() => checkForUpdate(false), 3500);
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible" && Date.now() - (updMemo().checkedAt || 0) > 6 * 3600 * 1000) checkForUpdate(false);
+  });
+}
+
 /* ======================= boot ======================= */
 let renderQueued = false;
 function scheduleRender(){
@@ -5123,6 +5218,7 @@ async function boot(){
 
   initSample();
   registerWorker();
+  watchForUpdates();
 }
 
 boot();

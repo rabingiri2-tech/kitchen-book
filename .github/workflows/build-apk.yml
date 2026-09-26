@@ -50,10 +50,19 @@ jobs:
             "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" > /dev/null 2>&1 || true
           fi
 
+      # One name for this build, used for the release and stamped into the app
+      # so the app can tell when a newer release exists.
+      - name: Name this build
+        run: |
+          echo "TAG=build-$(date -u +%Y%m%d-%H%M)" >> "$GITHUB_ENV"
+          echo "WHAT=$(git log -1 --pretty=%s)" >> "$GITHUB_ENV"
+
       - name: Gather the app files
         run: |
           mkdir -p www
           cp index.html manifest.webmanifest sw.js icon-192.png icon-512.png icon-maskable-512.png www/
+          sed -i "s/__KB_BUILD__/$TAG/" www/index.html
+          grep -q "const APP_BUILD = \"$TAG\"" www/index.html
           ls -l www
 
       - name: Install Capacitor
@@ -139,7 +148,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="build-$(date +%Y%m%d-%H%M)"
+          # the first line of the notes is what the app shows under "What's new"
+          printf '%s\n\n%s\n' "$WHAT" "Download kitchen-book.apk on your Android phone and open it to install. It updates the app in place." > notes.txt
           gh release create "$TAG" out/kitchen-book.apk \
             --title "Kitchen Book $TAG" \
-            --notes "Download kitchen-book.apk on your Android phone and open it to install."
+            --notes-file notes.txt --latest
