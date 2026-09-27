@@ -3771,83 +3771,230 @@ function splitLevel(grey){
   }
   return best;
 }
-function cornersFromMask(mask, w, h){
-  let area = 0;
-  let minSum = Infinity, maxSum = -Infinity, minDiff = Infinity, maxDiff = -Infinity;
-  let tl = null, br = null, bl = null, tr = null;
+/* ---- finding the page ----
+   Three ways of telling paper from table are tried: how WHITE each pixel is
+   (the smallest of red, green and blue — white paper is high in all three,
+   a beige or wooden table is low in blue), plain brightness, and darkness
+   (a dark card on a pale table). Each is split in two, cleaned up, and cut
+   into separate connected shapes. Every shape gets an outline, reduced to
+   its four corners, and the corners are then made exact by fitting a
+   straight line along each edge. The most solid, paper-like shape wins. */
+function blur3(a, w, h){
+  const t = new Uint8ClampedArray(w * h), o = new Uint8ClampedArray(w * h);
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const l = x > 0 ? x - 1 : x, r = x < w - 1 ? x + 1 : x;
+    t[y*w + x] = (a[y*w + l] + a[y*w + x] + a[y*w + r]) / 3;
+  }
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const u = y > 0 ? y - 1 : y, d = y < h - 1 ? y + 1 : y;
+    o[y*w + x] = (t[u*w + x] + t[y*w + x] + t[d*w + x]) / 3;
+  }
+  return o;
+}
+/* Grow or shrink a mask by r pixels in one go: a running count along each row,
+   then each column, so the cost does not depend on r. */
+function morphR(m, w, h, r, grow){
+  const t = new Uint8Array(w * h), o = new Uint8Array(w * h);
+  const run = new Int32Array(Math.max(w, h) + 1);
   for(let y = 0; y < h; y++){
+    for(let x = 0; x < w; x++) run[x + 1] = run[x] + m[y*w + x];
     for(let x = 0; x < w; x++){
-      if(!mask[y*w + x]) continue;
+      const lo = x - r < 0 ? 0 : x - r, hi = x + r > w - 1 ? w - 1 : x + r, cnt = run[hi + 1] - run[lo];
+      t[y*w + x] = grow ? (cnt > 0 ? 1 : 0) : (cnt === hi - lo + 1 ? 1 : 0);
+    }
+  }
+  for(let x = 0; x < w; x++){
+    for(let y = 0; y < h; y++) run[y + 1] = run[y] + t[y*w + x];
+    for(let y = 0; y < h; y++){
+      const lo = y - r < 0 ? 0 : y - r, hi = y + r > h - 1 ? h - 1 : y + r, cnt = run[hi + 1] - run[lo];
+      o[y*w + x] = grow ? (cnt > 0 ? 1 : 0) : (cnt === hi - lo + 1 ? 1 : 0);
+    }
+  }
+  return o;
+}
+/* Printed text leaves holes in a page's shape; anything the table cannot
+   reach from the photo's edge belongs to the page. */
+function fillHoles(m, w, h){
+  const out = new Uint8Array(w * h), stack = new Int32Array(w * h);
+  let top = 0;
+  const seed = p => { if(!m[p] && !out[p]){ out[p] = 1; stack[top++] = p; } };
+  for(let x = 0; x < w; x++){ seed(x); seed((h - 1) * w + x); }
+  for(let y = 0; y < h; y++){ seed(y * w); seed(y * w + w - 1); }
+  while(top){
+    const p = stack[--top], x = p % w;
+    if(x > 0) seed(p - 1);
+    if(x < w - 1) seed(p + 1);
+    if(p >= w) seed(p - w);
+    if(p < w * (h - 1)) seed(p + w);
+  }
+  for(let i = 0; i < w * h; i++) out[i] = out[i] ? 0 : 1;
+  return out;
+}
+/* Separate shapes, and for each big one the outermost pixel of every row and
+   column — enough to trace its outline. */
+function shapesIn(mask, w, h, minArea){
+  const lab = new Int32Array(w * h), areas = [0], stack = new Int32Array(w * h);
+  let next = 1;
+  for(let s = 0; s < w * h; s++){
+    if(!mask[s] || lab[s]) continue;
+    let top = 0, area = 0;
+    stack[top++] = s; lab[s] = next;
+    while(top){
+      const p = stack[--top], x = p % w;
       area++;
-      const s = x + y, df = x - y;
-      if(s < minSum){ minSum = s; tl = {x, y}; }
-      if(s > maxSum){ maxSum = s; br = {x, y}; }
-      if(df < minDiff){ minDiff = df; bl = {x, y}; }
-      if(df > maxDiff){ maxDiff = df; tr = {x, y}; }
+      if(x > 0 && mask[p-1] && !lab[p-1]){ lab[p-1] = next; stack[top++] = p - 1; }
+      if(x < w-1 && mask[p+1] && !lab[p+1]){ lab[p+1] = next; stack[top++] = p + 1; }
+      if(p >= w && mask[p-w] && !lab[p-w]){ lab[p-w] = next; stack[top++] = p - w; }
+      if(p < w*(h-1) && mask[p+w] && !lab[p+w]){ lab[p+w] = next; stack[top++] = p + w; }
     }
+    areas.push(area); next++;
   }
-  if(!tl || area < w*h*0.08) return null;
-  const quad = [tl, tr, br, bl];
-  const side = [dist(tl, tr), dist(tr, br), dist(br, bl), dist(bl, tl)];
-  if(Math.min.apply(null, side) < Math.min(w, h) * 0.12) return null;
-  /* How much of the shape's own outline is actually filled in. A sheet of
-     paper fills it; scattered text or a table seen around a card does not. */
-  let quadArea = 0;
+  const big = {};
+  for(let k = 1; k < next; k++) if(areas[k] >= minArea)
+    big[k] = {area:areas[k], rMin:new Int32Array(h).fill(-1), rMax:new Int32Array(h).fill(-1),
+      cMin:new Int32Array(w).fill(-1), cMax:new Int32Array(w).fill(-1), x0:w, y0:h, x1:0, y1:0};
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const s = big[lab[y*w + x]];
+    if(!s) continue;
+    if(s.rMin[y] < 0) s.rMin[y] = x; s.rMax[y] = x;
+    if(s.cMin[x] < 0) s.cMin[x] = y; s.cMax[x] = y;
+    if(x < s.x0) s.x0 = x; if(x > s.x1) s.x1 = x; if(y < s.y0) s.y0 = y; if(y > s.y1) s.y1 = y;
+  }
+  return Object.keys(big).map(k => big[k]);
+}
+function hullOf(pts){
+  pts = pts.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+  if(pts.length < 3) return pts;
+  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const lo = [], hi = [];
+  for(const p of pts){ while(lo.length >= 2 && cross(lo[lo.length-2], lo[lo.length-1], p) <= 0) lo.pop(); lo.push(p); }
+  for(let i = pts.length - 1; i >= 0; i--){ const p = pts[i]; while(hi.length >= 2 && cross(hi[hi.length-2], hi[hi.length-1], p) <= 0) hi.pop(); hi.push(p); }
+  lo.pop(); hi.pop();
+  return lo.concat(hi);
+}
+const polyArea = q => Math.abs(q.reduce((s, p, i) => { const n = q[(i + 1) % q.length]; return s + p.x*n.y - n.x*p.y; }, 0)) / 2;
+/* Drop the outline point that matters least, again and again, until four remain. */
+function toFour(hull){
+  const q = hull.slice();
+  const tri = (a, b, c) => Math.abs((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)) / 2;
+  while(q.length > 4){
+    let best = 0, bestA = Infinity;
+    for(let i = 0; i < q.length; i++){
+      const a = tri(q[(i - 1 + q.length) % q.length], q[i], q[(i + 1) % q.length]);
+      if(a < bestA){ bestA = a; best = i; }
+    }
+    q.splice(best, 1);
+  }
+  return q;
+}
+/* Fit a straight line along each edge and meet the lines at the corners. */
+function refineQuad(q, pts, diag){
+  const lines = [];
   for(let i = 0; i < 4; i++){
-    const p = quad[i], q = quad[(i+1) % 4];
-    quadArea += p.x*q.y - q.x*p.y;
+    const a = q[i], b = q[(i + 1) % 4];
+    const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+    const near = pts.filter(p => {
+      const t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / (len * len);
+      const d = Math.abs((p.x - a.x) * dy - (p.y - a.y) * dx) / len;
+      return t > 0.08 && t < 0.92 && d < diag * 0.02;
+    });
+    if(near.length < 5){ lines.push(null); continue; }
+    let mx = 0, my = 0;
+    near.forEach(p => { mx += p.x; my += p.y; });
+    mx /= near.length; my /= near.length;
+    let sxx = 0, syy = 0, sxy = 0;
+    near.forEach(p => { sxx += (p.x - mx) ** 2; syy += (p.y - my) ** 2; sxy += (p.x - mx) * (p.y - my); });
+    const ang = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+    lines.push({x:mx, y:my, dx:Math.cos(ang), dy:Math.sin(ang)});
   }
-  quadArea = Math.abs(quadArea) / 2;
-  if(quadArea < w*h*0.06) return null;
-  return {quad:quad, fill: area / quadArea, cover: quadArea / (w*h)};
+  return q.map((p, i) => {
+    const L1 = lines[(i + 3) % 4], L2 = lines[i];
+    if(!L1 || !L2) return p;
+    const den = L1.dx * L2.dy - L1.dy * L2.dx;
+    if(Math.abs(den) < 1e-6) return p;
+    const t = ((L2.x - L1.x) * L2.dy - (L2.y - L1.y) * L2.dx) / den;
+    const c = {x:L1.x + t * L1.dx, y:L1.y + t * L1.dy};
+    return Math.hypot(c.x - p.x, c.y - p.y) < diag * 0.08 ? c : p;
+  });
 }
-/* A page that clearly stands out from what it lies on, or null. */
-function pageFromGrey(g){
-  const w = g.w, h = g.h, n = w * h;
-  const level = splitLevel(g.grey);
-  const bright = new Uint8Array(n), dark = new Uint8Array(n);
-  for(let i = 0; i < n; i++){ if(g.grey[i] > level) bright[i] = 1; else dark[i] = 1; }
-  /* Try both readings — a pale page on a dark table, and a dark card on a pale
-     one — and keep whichever forms the more solid shape. */
-  const cands = [cornersFromMask(bright, w, h), cornersFromMask(dark, w, h)].filter(Boolean);
-  cands.sort((a, b) => (b.fill - a.fill) || (a.cover - b.cover));
-  return cands[0] || null;
+/* Corners in reading order: top-left, top-right, bottom-right, bottom-left. */
+function orderQuad(q){
+  const cx = q.reduce((s, p) => s + p.x, 0) / 4, cy = q.reduce((s, p) => s + p.y, 0) / 4;
+  const s = q.slice().sort((a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
+  let first = 0;
+  s.forEach((p, i) => { if(p.x + p.y < s[first].x + s[first].y) first = i; });
+  return s.slice(first).concat(s.slice(0, first));
 }
+function angleOk(q){
+  for(let i = 0; i < 4; i++){
+    const a = q[(i + 3) % 4], b = q[i], c = q[(i + 1) % 4];
+    const v1x = a.x - b.x, v1y = a.y - b.y, v2x = c.x - b.x, v2y = c.y - b.y;
+    const cos = (v1x*v2x + v1y*v2y) / ((Math.hypot(v1x, v1y) * Math.hypot(v2x, v2y)) || 1);
+    const deg = Math.acos(Math.max(-1, Math.min(1, cos))) * 180 / Math.PI;
+    if(deg < 45 || deg > 135) return false;
+  }
+  return true;
+}
+/* The best page-like shape, or null. Corners are in the source's pixels. */
 function findPage(src, maxSide){
-  const g = greyOf(src, maxSide || 420);
-  const hit = pageFromGrey(g);
-  return hit ? {quad:hit.quad.map(p => ({x:p.x / g.scale, y:p.y / g.scale})), fill:hit.fill, cover:hit.cover} : null;
-}
-function autoCorners(src){
-  const g = greyOf(src, 420);
-  const w = g.w, h = g.h;
-  const hit = pageFromGrey(g);
-  let quad = hit ? hit.quad : null;
-
-  if(!quad){
-    /* Nothing separated cleanly — fall back to where the detail is. */
-    const colScore = new Float64Array(w), rowScore = new Float64Array(h);
-    for(let y = 1; y < h - 1; y++){
-      for(let x = 1; x < w - 1; x++){
-        const gx = g.grey[y*w + x + 1] - g.grey[y*w + x - 1];
-        const gy = g.grey[(y+1)*w + x] - g.grey[(y-1)*w + x];
-        const mag = Math.abs(gx) + Math.abs(gy);
-        colScore[x] += mag; rowScore[y] += mag;
-      }
-    }
-    const bounds = (arr, len) => {
-      let max = 0;
-      for(let i = 0; i < len; i++) if(arr[i] > max) max = arr[i];
-      const th = max * 0.22;
-      let a = 0, b = len - 1;
-      while(a < len && arr[a] < th) a++;
-      while(b > a && arr[b] < th) b--;
-      return (b - a) > len * 0.3 ? [a, b] : [Math.round(len*0.04), Math.round(len*0.96)];
-    };
-    const [x0, x1] = bounds(colScore, w), [y0, y1] = bounds(rowScore, h);
-    quad = [{x:x0, y:y0}, {x:x1, y:y0}, {x:x1, y:y1}, {x:x0, y:y1}];
+  const W = src.width, H = src.height;
+  const k = Math.min(1, (maxSide || 480) / Math.max(W, H));
+  const w = Math.max(16, Math.round(W * k)), h = Math.max(16, Math.round(H * k));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const cx = c.getContext("2d", {willReadFrequently:true});
+  cx.imageSmoothingQuality = "high";
+  cx.drawImage(src, 0, 0, w, h);
+  const d = cx.getImageData(0, 0, w, h).data, n = w * h;
+  const lum = new Uint8ClampedArray(n), white = new Uint8ClampedArray(n);
+  for(let i = 0, p = 0; i < n; i++, p += 4){
+    lum[i] = (d[p]*0.299 + d[p+1]*0.587 + d[p+2]*0.114) | 0;
+    white[i] = Math.min(d[p], d[p+1], d[p+2]);
   }
-  return quad.map(p => ({x: p.x / g.scale, y: p.y / g.scale}));
+  const feats = [blur3(white, w, h), blur3(lum, w, h)];
+  const diag = Math.hypot(w, h), minArea = n * 0.012;
+  let best = null;
+  /* Trim twice: lightly, and hard enough to cut off thin things touching the
+     page (a glare streak, a pen, the table's veins) — then keep the best. */
+  const cut = Math.max(3, Math.round(diag * 0.018));
+  const tryMask = mask => {
+    const solid = fillHoles(morphR(morphR(mask, w, h, 1, true), w, h, 1, false), w, h);
+    for(const r of [1, cut]) tryShapes(morphR(morphR(solid, w, h, r, false), w, h, r, true));
+  };
+  const tryShapes = clean => {
+    for(const s of shapesIn(clean, w, h, minArea)){
+      const pts = [];
+      for(let y = 0; y < h; y++) if(s.rMin[y] >= 0){ pts.push({x:s.rMin[y], y:y}); pts.push({x:s.rMax[y] + 1, y:y}); }
+      for(let x = 0; x < w; x++) if(s.cMin[x] >= 0){ pts.push({x:x, y:s.cMin[x]}); pts.push({x:x, y:s.cMax[x] + 1}); }
+      const hull = hullOf(pts);
+      if(hull.length < 4) continue;
+      const q = orderQuad(refineQuad(toFour(hull), pts, diag))
+        .map(p => ({x:Math.max(0, Math.min(w, p.x)), y:Math.max(0, Math.min(h, p.y))}));
+      const qa = polyArea(q);
+      if(qa < n * 0.015 || !angleOk(q)) continue;
+      const fill = Math.min(1, s.area / qa), cover = qa / n;
+      const edges = (s.x0 <= 0 ? 1 : 0) + (s.y0 <= 0 ? 1 : 0) + (s.x1 >= w - 1 ? 1 : 0) + (s.y1 >= h - 1 ? 1 : 0);
+      /* solid shapes win; a shape running off two or more sides is usually the table */
+      const score = Math.pow(fill, 4) * (edges >= 2 ? 0.2 : edges === 1 ? 0.7 : 1) * (0.55 + 0.45 * Math.min(1, cover * 4));
+      if(!best || score > best.score) best = {quad:q, fill:fill, cover:cover, score:score, edges:edges};
+    }
+  };
+  for(const f of feats){
+    const t = splitLevel(f);
+    const hi = new Uint8Array(n), lo = new Uint8Array(n);
+    for(let i = 0; i < n; i++){ if(f[i] > t) hi[i] = 1; else lo[i] = 1; }
+    tryMask(hi);
+    if(f === feats[1]) tryMask(lo);
+  }
+  if(!best) return null;
+  return {quad:best.quad.map(p => ({x:p.x / k, y:p.y / k})), fill:best.fill, cover:best.cover, score:best.score};
+}
+/* A starting point to drag: the page if one is found, else nearly the whole photo. */
+function autoCorners(src){
+  const hit = findPage(src, 640);
+  if(hit && hit.fill > 0.72) return hit.quad;
+  const mx = src.width * 0.04, my = src.height * 0.04;
+  return [{x:mx, y:my}, {x:src.width - mx, y:my}, {x:src.width - mx, y:src.height - my}, {x:mx, y:src.height - my}];
 }
 /* ======================= turning it into a file ======================= */
 function canvasToBlob(canvas, type, quality){
@@ -4153,12 +4300,14 @@ async function scanThumb(page){
 const PAGE_CAP = 16e6;
 /* Add one picture as a page. quadHint: corners seen on the live preview, as
    fractions of the frame, used when the photo itself shows no clear page. */
-async function scanAddBlob(blob, name, quadHint, hintAspect){
-  const page = {id:scanUid(), blob:blob, rotate:0, filter:"doc", addedAt:Date.now(), name:name || "Scan",
+async function scanAddBlob(blob, name, quadHint, hintAspect, ready){
+  /* ready: a page Google's scanner already cropped and cleaned — keep it as it is */
+  const page = {id:scanUid(), blob:blob, rotate:0, filter:ready ? "original" : "doc", addedAt:Date.now(), name:name || "Scan",
     corners:null, cap:PAGE_CAP};
   const work = await workingCanvas(page);
   const hit = quadHint ? findPage(work, 700) : null;
-  if(hit && hit.fill > 0.8) page.corners = hit.quad;
+  if(ready) page.corners = [{x:0, y:0}, {x:work.width, y:0}, {x:work.width, y:work.height}, {x:0, y:work.height}];
+  else if(hit && hit.fill > 0.8) page.corners = hit.quad;
   else if(quadHint && Math.abs(work.width / work.height - hintAspect) < 0.03)
     page.corners = quadHint.map(p => ({x:p.x * work.width, y:p.y * work.height}));
   else page.corners = autoCorners(work);
@@ -4179,6 +4328,67 @@ async function scanAdd(files){
   }
   SC.adding = 0;
   render();
+}
+
+/* ======================= Google's document scanner (Android app) =======================
+   The same scanner WhatsApp and Google Drive open: live edges, automatic
+   capture, the phone's full camera quality, crop and clean-up. It comes with
+   Google Play services; the pages come back as JPEG files. */
+async function readAppFile(uri){
+  const C = window.Capacitor;
+  try {
+    const r = await fetch(C && C.convertFileSrc ? C.convertFileSrc(uri) : uri);
+    if(r.ok){
+      const b = await r.blob();
+      if(b.size) return b.type && /^image\//.test(b.type) ? b : new Blob([b], {type:"image/jpeg"});
+    }
+  } catch(e){}
+  const fs = capPlugin("Filesystem");
+  if(!fs) throw new Error("cannot read the scanned page");
+  const res = await fs.readFile({path:uri});
+  const bin = atob(res.data), bytes = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], {type:"image/jpeg"});
+}
+/* true when Google's scanner handled it (even if the person backed out) */
+async function scanWithGoogle(){
+  const ds = capPlugin("DocumentScanner");
+  if(!ds) return false;
+  let result;
+  try {
+    result = await ds.scanDocument({galleryImportAllowed:true, pageLimit:30, resultFormats:"JPEG", scannerMode:"FULL"});
+  } catch(e){
+    const msg = String((e && (e.message || e.errorMessage)) || e || "");
+    if(/cancel|result code: 0/i.test(msg)) return true;
+    let available = true;
+    try { available = !!(await ds.isGoogleDocumentScannerModuleAvailable()).available; } catch(x){}
+    if(!available){
+      toast("Google's scanner is downloading (first time only). Try again in a minute.");
+      try {
+        ds.addListener("googleDocumentScannerModuleInstallProgress", ev => {
+          if(ev && ev.state === 4) toast("Google's scanner is ready — tap Scan with camera again");
+        });
+        await ds.installGoogleDocumentScannerModule();
+      } catch(x){}
+      return true;
+    }
+    console.warn("Google scanner failed", msg);
+    return false;
+  }
+  const uris = (result && result.scannedImages) || [];
+  if(!uris.length) return true;
+  SC.adding = uris.length; render();
+  let added = 0;
+  for(const uri of uris){
+    try { await scanAddBlob(await readAppFile(uri), "Scan " + (SC.pages.length + 1), null, 0, true); added++; }
+    catch(e){ console.warn(e); }
+    SC.adding--; render();
+  }
+  SC.adding = 0;
+  toast(added === uris.length ? added + " " + pluralise(added, "page") + " added"
+    : added + " of " + uris.length + " pages could be read");
+  render();
+  return true;
 }
 
 /* ======================= live camera, WhatsApp-style =======================
@@ -4283,11 +4493,11 @@ async function openLiveScanner(fallback){
   const sctx = small.getContext("2d", {willReadFrequently:true});
   const tick = () => {
     if(L.closed || L.busy || !video.videoWidth) return;
-    const vw = video.videoWidth, vh = video.videoHeight, f = 360 / Math.max(vw, vh);
+    const vw = video.videoWidth, vh = video.videoHeight, f = 320 / Math.max(vw, vh);
     small.width = Math.round(vw * f); small.height = Math.round(vh * f);
     sctx.drawImage(video, 0, 0, small.width, small.height);
-    const hit = findPage(small, 360);
-    const ok = hit && hit.fill > 0.8 && hit.cover > 0.12 && hit.cover < 0.97;
+    const hit = findPage(small, 320);
+    const ok = hit && hit.fill > 0.8 && hit.cover > 0.03 && hit.cover < 0.97;
     const q = ok ? hit.quad.map(p => ({x:p.x / small.width, y:p.y / small.height})) : null;
     L.stable = q && L.last && quadMove(q, L.last) < 0.02 ? L.stable + 1 : 0;
     L.lost = q ? 0 : L.lost + 1;
@@ -4393,7 +4603,10 @@ function viewScan(){
   const n = SC.pages.length;
   const head = topbar("Scan", n ? n + " " + pluralise(n, "page") + " · stays on this device" : "Documents and photos, to an exact size",
     frag(
-      btn("Scan with camera", {cls:"primary", icon:"camera", onClick:() => openLiveScanner(() => camera.click())}),
+      btn("Scan with camera", {cls:"primary", icon:"camera", onClick:async () => {
+        if(await scanWithGoogle()) return;
+        openLiveScanner(() => camera.click());
+      }}),
       btn("Choose photos", {icon:"image", onClick:() => picker.click()}),
       n ? btn("Make a file", {icon:"down", onClick:openScanExport, disabled:SC.adding > 0}) : null));
 
@@ -5030,6 +5243,34 @@ async function runSelfTest(){
   const whole = await pdf.text();
   check("the PDF starts with %PDF and ends with %%EOF", whole.indexOf("%PDF-") === 0 && /%%EOF\s*$/.test(whole));
   check("a two-page PDF declares two pages", /\/Count 2/.test(whole));
+
+  /* a small white receipt, tilted, on beige marble with dark veins and a glare streak */
+  const marble = document.createElement("canvas");
+  marble.width = 600; marble.height = 800;
+  const mx2 = marble.getContext("2d");
+  const mg = mx2.createLinearGradient(0, 0, 600, 800);
+  mg.addColorStop(0, "rgb(214,196,182)"); mg.addColorStop(1, "rgb(196,176,160)");
+  mx2.fillStyle = mg; mx2.fillRect(0, 0, 600, 800);
+  mx2.strokeStyle = "rgb(90,80,75)"; mx2.lineWidth = 4;
+  mx2.beginPath(); mx2.moveTo(0, 120); mx2.bezierCurveTo(150, 200, 250, 60, 600, 180); mx2.stroke();
+  mx2.beginPath(); mx2.moveTo(40, 800); mx2.lineTo(120, 520); mx2.stroke();
+  mx2.strokeStyle = "rgba(255,255,255,.8)"; mx2.lineWidth = 10;
+  mx2.beginPath(); mx2.moveTo(420, 600); mx2.lineTo(590, 560); mx2.stroke();
+  mx2.save(); mx2.translate(300, 420); mx2.rotate(-0.1);
+  mx2.fillStyle = "rgb(236,239,244)"; mx2.fillRect(-100, -130, 200, 260);
+  mx2.fillStyle = "rgb(60,60,70)"; for(let i = 0; i < 9; i++) mx2.fillRect(-80, -110 + i*26, 150, 4);
+  mx2.restore();
+  const rturn = (x, y) => { const a = -0.1; return {x: 300 + x*Math.cos(a) - y*Math.sin(a), y: 420 + x*Math.sin(a) + y*Math.cos(a)}; };
+  const rreal = [rturn(-100,-130), rturn(100,-130), rturn(100,130), rturn(-100,130)];
+  const rfound = findPage(marble, 480);
+  check("a small white receipt on pale marble is found",
+    !!rfound && rfound.fill > 0.8 && rfound.quad.every((p, i) => Math.hypot(p.x - rreal[i].x, p.y - rreal[i].y) < 10),
+    rfound && rfound.quad.map((p, i) => Math.round(Math.hypot(p.x - rreal[i].x, p.y - rreal[i].y))));
+  const blank = document.createElement("canvas");
+  blank.width = 300; blank.height = 300;
+  const bk = blank.getContext("2d"); bk.fillStyle = "rgb(200,180,160)"; bk.fillRect(0, 0, 300, 300);
+  const none = findPage(blank, 480);
+  check("an empty table is not mistaken for a page", !none || none.fill < 0.8 || none.cover > 0.97, none && {fill:none.fill, cover:none.cover});
 
   /* a page with a shadow over its right side, black writing, and a blue pen line */
   const shade = () => {
